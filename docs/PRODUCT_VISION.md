@@ -12,7 +12,7 @@ Enable meaningful conversations across languages and network conditions, on the 
 
 ## Users and situations
 
-1. **Remote collaborators and hackathon teams:** bilingual conversation during calls and demos.
+1. **Remote teams and professional collaborators:** multilingual conversations during meetings and demos.
 2. **Students / educators:** follow technical explanations and ask questions in a preferred language.
 3. **In-person pairs:** each person uses a phone and optional earbuds.
 4. **Presenters / attendees:** many listeners select languages through a browser/QR join link.
