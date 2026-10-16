@@ -35,7 +35,7 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 - Cloud speech recognition, translation and TTS, evaluated against direct speech-to-speech APIs
 - Opus and adaptive bandwidth for voice communication; text-first fallback
 
-See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), and [Decisions & Risks](docs/DECISIONS.md).
+See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
 
 ## Guiding principles
 
