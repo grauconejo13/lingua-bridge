@@ -6,9 +6,9 @@ Lingua Bridge is a proposed accessibility-minded multilingual communication plat
 
 > **Status: Concept / documentation-only. No translator or Zoom integration has been implemented.**
 
-## Why this exists
+## Problem statement
 
-The initial inspiration came from a remote hackathon collaboration: a technically capable teammate felt less confident speaking English, and intermittent audio made conversation harder. Language confidence and connectivity are separate, compounding obstacles.
+Language differences and unstable network connectivity can prevent effective communication in remote meetings, face-to-face conversations, and presentations. Lingua Bridge explores accessible, multilingual communication with graceful fallback when live audio becomes unreliable.
 
 ## Product idea
 
