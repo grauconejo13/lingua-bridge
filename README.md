@@ -21,7 +21,7 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 ## Initial scope
 
-**First milestone:** a browser-based English ↔ Hindi translation proof of concept with speech capture, translated captions, and optional synthesized audio. Test accuracy, latency, cost, and permissions before promising live natural conversation.
+**First milestone:** a browser-based Japanese ↔ English translation proof of concept with speech capture, translated captions, and optional synthesized audio. Test accuracy, latency, cost, and permissions before promising live natural conversation.
 
 **Next:** two-person rooms, independent preferred languages, audio controls, connection diagnostics, and interruption recovery.
 
