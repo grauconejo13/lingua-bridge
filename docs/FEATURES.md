@@ -4,7 +4,7 @@ Legend: **MVP**, **Next**, **Later**, **Research**. These are plans, not complet
 
 | Priority | Capability | Acceptance idea |
 | --- | --- | --- |
-| MVP | English/Hindi language selection | Each side can configure target language |
+| MVP | Configurable language selection | Each participant can choose supported source and target languages |
 | MVP | Microphone permission and input | Clear consent prompt, mute/stop available |
 | MVP | Speech recognition | Interim/final recognized text displayed |
 | MVP | Translation | Clearly labeled source and target text |
