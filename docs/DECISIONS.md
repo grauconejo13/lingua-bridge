@@ -4,7 +4,7 @@
 
 - Working project name: **Lingua Bridge**.
 - Keep platform independent of Zoom; Zoom plugin is a later adapter.
-- Build a modular language registry rather than hardcoding a single language pair. English and Hindi are candidate initial test languages; actual coverage depends on provider capabilities and quality testing.
+- Build a modular language registry rather than hardcoding any language pair. Initial test languages will be selected based on provider capabilities and quality testing, without naming specific languages in public project documentation.
 - Target browser-based software on laptops and phones; dedicated hardware optional later.
 - Prioritize lower-bandwidth experiences and non-audio fallback.
 - Preserve project documentation before starting code.
