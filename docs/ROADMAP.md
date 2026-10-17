@@ -10,7 +10,7 @@
 ## Phase 1: One-device MVP
 - [ ] Scaffold React/Vite/TypeScript UI and Node backend.
 - [ ] Secure API integration and microphone permission.
-- [ ] English ↔ Hindi speech capture to translated text.
+- [ ] Configurable multilingual speech capture to translated text.
 - [ ] Optional translated audio playback.
 - [ ] Responsive captions, visible errors, mute and stop controls.
 - [ ] Record latency/cost test results and create demo.
