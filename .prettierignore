@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+coverage/
+.next/
+.vercel/
+*.min.js
+*.map
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+.env*
+!.env.example
