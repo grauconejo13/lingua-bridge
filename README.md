@@ -37,6 +37,10 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
 
+## Code quality
+
+Shared formatting conventions are defined in [Code Quality](docs/CODE_QUALITY.md), with Prettier and EditorConfig configuration at the repository root. Linting and CI will be configured when the application workspaces are scaffolded.
+
 ## Guiding principles
 
 1. **Accessibility first:** readable captions, transparent status, simple onboarding.
