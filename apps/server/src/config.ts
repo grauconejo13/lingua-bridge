@@ -16,7 +16,7 @@ const EnvSchema = z
       .enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])
       .default('info'),
 
-    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(30),
+    RATE_LIMIT_MAX: z.coerce.number().int().positive().default(60),
     RATE_LIMIT_WINDOW: z.string().default('1 minute'),
     MAX_AUDIO_BYTES: z.coerce
       .number()
@@ -24,6 +24,9 @@ const EnvSchema = z
       .positive()
       .default(5 * 1024 * 1024),
     MAX_TTS_CHARS: z.coerce.number().int().positive().default(800),
+    MAX_ROOMS: z.coerce.number().int().positive().default(100),
+    ROOM_IDLE_MINUTES: z.coerce.number().positive().default(30),
+    MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(0),
     CORS_ORIGIN: z.string().optional(),
   })
   .refine((env) => env.PROVIDER !== 'openai' || Boolean(env.OPENAI_API_KEY), {
@@ -49,6 +52,9 @@ export interface AppConfig {
   rateLimit: { max: number; timeWindow: string };
   maxAudioBytes: number;
   maxTtsChars: number;
+  rooms: { maxRooms: number; idleMs: number };
+  /** Artificial delay for the mock provider, to make demos and tests feel realistic. */
+  mockLatencyMs: number;
   corsOrigin: string | undefined;
   /** Directory of the built web client to serve, if present. */
   webDistDir: string | undefined;
@@ -79,6 +85,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, webDistDir?: st
     rateLimit: { max: e.RATE_LIMIT_MAX, timeWindow: e.RATE_LIMIT_WINDOW },
     maxAudioBytes: e.MAX_AUDIO_BYTES,
     maxTtsChars: e.MAX_TTS_CHARS,
+    rooms: { maxRooms: e.MAX_ROOMS, idleMs: e.ROOM_IDLE_MINUTES * 60_000 },
+    mockLatencyMs: e.MOCK_LATENCY_MS,
     corsOrigin: e.CORS_ORIGIN || undefined,
     webDistDir,
   };
