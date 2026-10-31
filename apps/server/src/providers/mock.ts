@@ -37,12 +37,20 @@ const SAMPLE_COUNT = 3;
 /** Recordings smaller than this are treated as an accidental tap with no speech. */
 export const MOCK_MIN_AUDIO_BYTES = 512;
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class MockProvider implements SpeechProvider {
   readonly id = 'mock' as const;
   readonly demoMode = true;
   private next = 0;
+  private readonly latencyMs: number;
+
+  constructor(options: { latencyMs?: number } = {}) {
+    this.latencyMs = options.latencyMs ?? 0;
+  }
 
   async transcribe({ audio, language }: TranscribeInput): Promise<{ text: string }> {
+    if (this.latencyMs) await sleep(this.latencyMs);
     if (audio.byteLength < MOCK_MIN_AUDIO_BYTES) return { text: '' };
     const index = this.next;
     this.next = (this.next + 1) % SAMPLE_COUNT;
@@ -52,6 +60,7 @@ export class MockProvider implements SpeechProvider {
   }
 
   async translate({ text, from, to }: TranslateInput): Promise<{ text: string }> {
+    if (this.latencyMs) await sleep(this.latencyMs / 2);
     const index = SAMPLES[from.code]?.indexOf(text) ?? -1;
     const target = index >= 0 ? SAMPLES[to.code]?.[index] : undefined;
     return { text: target ?? `[demo ${from.code}→${to.code}] ${text}` };

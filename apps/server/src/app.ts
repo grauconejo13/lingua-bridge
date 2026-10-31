@@ -9,7 +9,6 @@ import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import {
   LANGUAGES,
   getLanguage,
-  isAcceptedAudioType,
   isLanguageCode,
   type ApiError,
   type ApiErrorCode,
@@ -21,6 +20,8 @@ import type { AppConfig } from './config';
 import { AppError, ProviderError } from './errors';
 import { translateUtterance } from './pipeline';
 import type { SpeechProvider } from './providers';
+import { registerRooms } from './rooms/routes';
+import { readAudioUpload } from './upload';
 
 export interface BuildAppOptions {
   config: AppConfig;
@@ -28,7 +29,7 @@ export interface BuildAppOptions {
   logger?: boolean;
 }
 
-function requireLanguage(value: unknown, field: string): LanguageCode {
+export function requireLanguage(value: unknown, field: string): LanguageCode {
   if (!isLanguageCode(value)) {
     throw new AppError('UNSUPPORTED_LANGUAGE', `Unsupported or missing ${field}.`, 400);
   }
@@ -65,6 +66,9 @@ export async function buildApp({
   await app.register(rateLimit, {
     max: config.rateLimit.max,
     timeWindow: config.rateLimit.timeWindow,
+    // Only the API costs money. Page loads and assets shouldn't use up the budget, which
+    // matters when two people in the same place share one public IP address.
+    allowList: (request) => !request.url.startsWith('/api/'),
     errorResponseBuilder: (_request, context) => ({
       statusCode: context.statusCode,
       code: 'RATE_LIMITED',
@@ -125,39 +129,9 @@ export async function buildApp({
   }));
 
   app.post('/api/utterances', async (request) => {
-    if (!request.isMultipart()) {
-      throw new AppError('BAD_REQUEST', 'Expected multipart/form-data.', 400);
-    }
-
-    const fields: Record<string, string> = {};
-    let audio: Buffer | undefined;
-    let mimeType = '';
-
-    for await (const part of request.parts()) {
-      if (part.type === 'file') {
-        if (part.fieldname !== 'audio') {
-          await part.toBuffer();
-          continue;
-        }
-        mimeType = part.mimetype;
-        if (!isAcceptedAudioType(mimeType)) {
-          throw new AppError(
-            'UNSUPPORTED_AUDIO',
-            `Unsupported audio format (${mimeType || 'unknown'}).`,
-            415,
-          );
-        }
-        audio = await part.toBuffer();
-      } else if (typeof part.value === 'string') {
-        fields[part.fieldname] = part.value;
-      }
-    }
-
+    const { fields, audio, mimeType } = await readAudioUpload(request);
     const sourceLanguage = requireLanguage(fields.sourceLanguage, 'sourceLanguage');
     const targetLanguage = requireLanguage(fields.targetLanguage, 'targetLanguage');
-    if (!audio || audio.byteLength === 0) {
-      throw new AppError('BAD_REQUEST', 'Missing audio recording.', 400);
-    }
 
     const result = await translateUtterance(provider, {
       audio,
@@ -206,6 +180,8 @@ export async function buildApp({
       return reply.header('Cache-Control', 'no-store').type(speech.mimeType).send(speech.audio);
     },
   );
+
+  await registerRooms(app, { config, provider });
 
   app.all('/api/*', async () => {
     throw new AppError('BAD_REQUEST', 'Unknown API route.', 404);

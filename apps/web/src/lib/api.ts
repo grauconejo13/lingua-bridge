@@ -11,7 +11,7 @@ import type {
 /** A failed API call, with a message that is safe to show. */
 export class ApiClientError extends Error {
   constructor(
-    readonly code: ApiErrorCode | 'NETWORK',
+    readonly code: ApiErrorCode | 'NETWORK' | 'ABORTED',
     message: string,
     readonly status?: number,
   ) {
@@ -25,11 +25,12 @@ export class ApiClientError extends Error {
   }
 }
 
-async function request(input: string, init?: RequestInit): Promise<Response> {
+export async function request(input: string, init?: RequestInit): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(input, init);
   } catch {
+    if (init?.signal?.aborted) throw new ApiClientError('ABORTED', 'Request cancelled.');
     throw new ApiClientError(
       'NETWORK',
       navigator.onLine
@@ -62,16 +63,19 @@ export async function getLanguages(): Promise<LanguagesResponse> {
   return (await request('/api/languages')).json() as Promise<LanguagesResponse>;
 }
 
-export async function sendUtterance(input: {
-  audio: Blob;
-  sourceLanguage: LanguageCode;
-  targetLanguage: LanguageCode;
-}): Promise<UtteranceResponse> {
+export async function sendUtterance(
+  input: {
+    audio: Blob;
+    sourceLanguage: LanguageCode;
+    targetLanguage: LanguageCode;
+  },
+  signal?: AbortSignal,
+): Promise<UtteranceResponse> {
   const form = new FormData();
   form.append('sourceLanguage', input.sourceLanguage);
   form.append('targetLanguage', input.targetLanguage);
   form.append('audio', input.audio, 'utterance');
-  const response = await request('/api/utterances', { method: 'POST', body: form });
+  const response = await request('/api/utterances', { method: 'POST', body: form, signal });
   return response.json() as Promise<UtteranceResponse>;
 }
 

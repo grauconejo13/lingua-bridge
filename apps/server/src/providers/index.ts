@@ -10,6 +10,6 @@ export function createProvider(config: AppConfig): SpeechProvider {
     case 'openai':
       return new OpenAIProvider(config.openai);
     case 'mock':
-      return new MockProvider();
+      return new MockProvider({ latencyMs: config.mockLatencyMs });
   }
 }

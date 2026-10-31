@@ -221,6 +221,15 @@ describe('serving the built web app', () => {
     expect(route.body).toContain('Lingua Bridge');
   });
 
+  it('does not count page loads against the API rate limit', async () => {
+    app = await testApp({ webDistDir: fakeDist(), env: { RATE_LIMIT_MAX: '1' } });
+    for (let i = 0; i < 3; i++) {
+      expect((await app.inject({ method: 'GET', url: '/' })).statusCode).toBe(200);
+    }
+    expect((await app.inject({ method: 'GET', url: '/api/health' })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'GET', url: '/api/health' })).statusCode).toBe(429);
+  });
+
   it('returns 404 for missing files instead of the app shell', async () => {
     app = await testApp({ webDistDir: fakeDist() });
     const res = await app.inject({ method: 'GET', url: '/assets/missing-abc123.js' });

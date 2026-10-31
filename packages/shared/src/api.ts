@@ -52,6 +52,7 @@ export type ApiErrorCode =
   | 'NO_SPEECH'
   | 'RATE_LIMITED'
   | 'PROVIDER_ERROR'
+  | 'UNAVAILABLE'
   | 'INTERNAL';
 
 export interface ApiError {
