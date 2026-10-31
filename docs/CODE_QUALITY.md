@@ -6,12 +6,16 @@ Lingua Bridge uses shared formatting conventions from the beginning of implement
 
 - **Prettier:** consistent formatting for TypeScript, JavaScript, React, JSON, stylesheets and documentation.
 - **EditorConfig:** UTF-8, LF line endings, two-space indentation and final newlines.
-- **ESLint:** will be added alongside the frontend/backend TypeScript scaffolds so it uses the actual framework plugins and module settings.
-- **CI and staged-file hooks:** will be added once package manifests and a lockfile exist. Do not advertise lint or CI checks before they run.
+- **ESLint:** flat config at the repo root with `typescript-eslint`, React Hooks and React Refresh rules.
+- **TypeScript:** strict mode with `noUncheckedIndexedAccess`, type-checked per workspace.
+- **Vitest:** unit and API tests for the server, shared package and React components.
+- **CI:** GitHub Actions runs format check, lint, typecheck, tests and a production build on every pull request and push to `main`.
+- **Staged-file hooks:** not added yet. Optional later.
 
 ## Prettier rules
 
 Configured in `.prettierrc.json`:
+
 - Semicolons enabled
 - Single quotes for JS/TS
 - Trailing commas where supported
@@ -19,16 +23,14 @@ Configured in `.prettierrc.json`:
 - 100-character print width
 - LF line endings
 
-## Developer workflow (after JavaScript workspace setup)
+## Developer workflow
 
 ```bash
 npm install
-npm run format
-npm run format:check
-npm run lint
+npm run format        # write formatting
+npm run check         # format check, lint, typecheck, tests (what CI runs, minus the build)
+npm run build         # production build of web and server
 ```
-
-These commands are **planned**, not available yet. The workspace scripts will be introduced with the initial app scaffold.
 
 ## Review policy
 
@@ -38,6 +40,8 @@ These commands are **planned**, not available yet. The workspace scripts will be
 4. Review unexpected diffs before committing.
 5. Never commit keys or real personal/meeting information.
 
-## Next implementation task
+## Testing conventions
 
-Scaffold the npm workspaces and frontend/backend, install and pin Prettier and the appropriate ESLint/TypeScript integrations, add package scripts, produce a lockfile, then activate GitHub Actions and optional lint-staged/Husky.
+- The server's `mock` provider makes no network calls, so API tests and local demos never need a key or spend money.
+- Provider adapters take an injected `fetch`, so tests check exactly what is sent without calling the real API.
+- Tests assert that provider error details and keys never reach a client response.

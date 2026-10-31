@@ -1,6 +1,38 @@
-# Architecture (Proposed)
+# Architecture
 
-> Design document only. Components have not been implemented or confirmed.
+> The [Milestone 1 implementation](#milestone-1-implementation) section describes what is built. Everything after it is the proposed longer-term design and has not been implemented.
+
+## Milestone 1 implementation
+
+```mermaid
+sequenceDiagram
+  participant U as Browser (apps/web)
+  participant S as Server (apps/server)
+  participant P as Provider (mock or OpenAI)
+  U->>U: Tap to speak (MediaRecorder, max 30 s)
+  U->>S: POST /api/utterances (audio + languages)
+  S->>P: transcribe(audio, source language)
+  P-->>S: source text
+  S->>P: translate(text, from, to)
+  P-->>S: translated text
+  S-->>U: captions + per-step timings
+  U->>S: POST /api/speech (optional)
+  S->>P: synthesize(text)
+  P-->>U: audio
+```
+
+| Piece                                 | Where                          | Notes                                                      |
+| ------------------------------------- | ------------------------------ | ---------------------------------------------------------- |
+| Language registry and API types       | `packages/shared`              | One source of truth for the client and server              |
+| Recording, captions, playback, status | `apps/web`                     | React 19, no UI framework; microphone only on explicit tap |
+| API, limits, security headers         | `apps/server/src/app.ts`       | Fastify 5, rate limit, multipart size limit, CSP           |
+| Orchestration and timings             | `apps/server/src/pipeline.ts`  | Skips translation when both languages match                |
+| Provider interface                    | `apps/server/src/providers`    | `mock` (keyless, labeled demo) and `openai` (REST)         |
+| Benchmark                             | `apps/server/scripts/bench.ts` | Synthesizes phrases, measures round trips                  |
+
+Endpoints: `GET /api/health`, `GET /api/languages`, `POST /api/utterances`, `POST /api/speech`. In production the same Node process also serves the built web app.
+
+Resilience in this milestone is deliberately small: offline and server errors are shown on each caption, and a failed recording is kept in memory so it can be retried. Adaptive bandwidth and queued delivery belong to Phase 3.
 
 ## High-level flow
 
@@ -17,7 +49,7 @@ flowchart LR
   H --- F
 ```
 
-## Proposed components
+## Proposed long-term components
 
 **Client:** React + TypeScript + Vite as a mobile-friendly web application. Request microphone permission explicitly. Maintain language selection, audio controls, consent UI, caption state, connection status, and safe retry queue.
 
