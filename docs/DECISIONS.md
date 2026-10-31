@@ -28,13 +28,29 @@ These are working choices for the one-device prototype. Each can be revisited on
 
 **D7. No retention by default.** Audio and transcripts exist only in memory for the request. Captions live only in the browser tab. Logs record language codes, sizes and timings.
 
+## Milestone 2 decisions
+
+**D8. Rooms are in memory, two seats, no accounts.** A room is created by one person and joined through a link. The join secret is in the URL fragment, which browsers do not send to servers, so it stays out of logs and referrers. Accounts would add sign-up friction to a two-minute conversation and belong to the private product if anywhere. A server restart ends all conversations, which is consistent with D7.
+
+**D9. Send over HTTP, push over WebSocket.** Each send is an HTTP POST with a client-generated id; repeating it returns the same message, so retries after timeouts or reconnects can never duplicate. The WebSocket only pushes presence, messages and receipts. This keeps one clear reliability rule instead of building acknowledgements and retries into the socket protocol.
+
+**D10. Messages carry a room sequence number.** A reconnecting device sends the last number it has and receives everything after it. Clearing the screen remembers the number so cleared messages don't return.
+
+**D11. "Delivered" means the other device acknowledged it.** Server acceptance is shown as _Sent_. This follows the rule in [Features](FEATURES.md) never to imply delivery before acknowledgement.
+
+**D12. Translate once per language, at the server.** Speech is transcribed once in the speaker's language and translated into each participant's language. Late joiners and people who switch language get translations on demand. The sender sees what the other person sees, so mistranslations can be noticed.
+
+**D13. Turn-aware playback.** Each device shares when it is recording. Translated speech waits while either person is recording, because two phones in the same room would otherwise feed one speaker into the other microphone.
+
+**D14. A device remembers its seat for 12 hours.** The seat token (never messages) is stored locally so a refresh, closed tab or dropped connection rejoins as the same person. An abandoned seat can be taken by someone new after 5 minutes.
+
 ## Open decisions
 
 - Real-time speech-to-speech vs the current pipeline (D1), decided by benchmark
 - Long-term provider(s), terms, language support, and unit economics
 - Whether streaming in Phase 2 still needs a server relay (D2)
 - Consent, data retention, and regional processing options
-- Room authentication and abuse mitigation
+- Whether rooms need anything beyond link secrets (for example a host-approved join) once used outside demos
 - When to add source language auto-detection (D4)
 - Exact requirements and feasibility of Zoom integration
 

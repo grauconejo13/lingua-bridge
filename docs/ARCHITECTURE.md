@@ -1,6 +1,6 @@
 # Architecture
 
-> The [Milestone 1 implementation](#milestone-1-implementation) section describes what is built. Everything after it is the proposed longer-term design and has not been implemented.
+> The [Milestone 1](#milestone-1-implementation) and [Milestone 2](#milestone-2-implementation-two-person-rooms) sections describe what is built. Everything after them is the proposed longer-term design and has not been implemented.
 
 ## Milestone 1 implementation
 
@@ -48,6 +48,43 @@ flowchart LR
   H[Network monitor & fallback] --- A
   H --- F
 ```
+
+## Milestone 2 implementation: two-person rooms
+
+```mermaid
+sequenceDiagram
+  participant A as Device A
+  participant S as Server (rooms in memory)
+  participant B as Device B
+  A->>S: POST /api/rooms
+  S-->>A: roomId + secret (shared as /r/roomId#secret)
+  A->>S: WS hello (language)
+  B->>S: WS hello (language)
+  S-->>A: presence (B connected)
+  A->>S: WS speaking: true
+  S-->>B: presence (A speaking) — B holds playback
+  A->>S: POST /api/rooms/:id/utterances (clientMessageId, audio)
+  S->>S: transcribe in A's language, translate into B's
+  S-->>A: message (HTTP response and WS push)
+  S-->>B: message (WS push)
+  B->>S: WS ack
+  S-->>A: delivered
+```
+
+| Piece               | Where                                     | Notes                                                                                                    |
+| ------------------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Protocol types      | `packages/shared/src/rooms.ts`            | Client and server events, close codes, limits                                                            |
+| Room store          | `apps/server/src/rooms/store.ts`          | Rooms, seats, history with sequence numbers, idle sweep                                                  |
+| Room logic          | `apps/server/src/rooms/service.ts`        | Join/resume, idempotent sends, translation, receipts; no I/O, so it is unit-tested with stub connections |
+| HTTP and WebSocket  | `apps/server/src/rooms/routes.ts`         | Payload validation, hello timeout, heartbeat, per-socket event budget                                    |
+| Connection hook     | `apps/web/src/hooks/useRoomConnection.ts` | Hello/resume, backoff reconnect, silence detection, acks                                                 |
+| Conversation screen | `apps/web/src/RoomPage.tsx`               | Lobby, outbox with automatic retry, turn-aware playback                                                  |
+
+**Reconnecting.** The client pings every 15 seconds and treats 35 seconds of silence as a dead connection. It reconnects with backoff (0.5 s up to 15 s), immediately when the browser comes back online or the tab becomes visible, and sends the last sequence number it has. Failed sends retry with backoff and again when the browser reports it is back online.
+
+**Limits.** Two seats per room, `MAX_ROOMS` rooms per server, rooms swept after `ROOM_IDLE_MINUTES` with nobody connected, 100 messages of history, 500-character typed messages, 16 KB WebSocket frames, and 60 events per 10 seconds per socket. The API rate limit applies to `/api/*` only, so page loads never use it up.
+
+**Scaling note.** Rooms live in one process. Running more than one server instance would need sticky sessions or a shared store (for example Redis pub/sub); that is out of scope until there is a reason.
 
 ## Proposed long-term components
 
