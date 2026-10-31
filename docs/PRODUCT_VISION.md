@@ -26,7 +26,7 @@ Enable meaningful conversations across languages and network conditions, on the 
 - When the connection weakens, the experience shifts toward lower-bandwidth options and clearly shows delivery status.
 - When the network disappears, locally saved messages can be retried later if the device supports it and the user opts in.
 
-## What we are *not* promising yet
+## What we are _not_ promising yet
 
 - Perfect or instantaneous translation.
 - Reliable simultaneous multi-party speech on poor networks.

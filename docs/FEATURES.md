@@ -2,29 +2,29 @@
 
 Legend: **MVP**, **Next**, **Later**, **Research**. These are plans, not completed features.
 
-| Priority | Capability | Acceptance idea |
-| --- | --- | --- |
-| MVP | Configurable language selection | Each participant can choose supported source and target languages |
-| MVP | Microphone permission and input | Clear consent prompt, mute/stop available |
-| MVP | Speech recognition | Interim/final recognized text displayed |
-| MVP | Translation | Clearly labeled source and target text |
-| MVP | Optional translated TTS | Play and stop translated speech |
-| MVP | Error / loading states | API failure and disconnection visibly handled |
-| MVP | Basic privacy controls | No recording without explicit user action |
-| Next | Two-person room links | Each device joins its own secure session |
-| Next | Automatic source language detection | User can override incorrect detection |
-| Next | Per-person audio/caption preferences | Independent listener settings |
-| Next | Network diagnostics | Measure round-trip delay, loss/jitter where exposed |
-| Next | Text fallback and re-send | Recover from transient audio failure |
-| Next | Mobile-responsive PWA | Usable on phone-sized screens |
-| Next | Cost/latency instrumentation | Log aggregate timings without storing speech content |
-| Later | Conference/QR audience join | One speaker; multiple translated language channels |
-| Later | Zoom Apps/RTMS integration | Validate availability, consent, approved audio access |
-| Later | Offline-friendly store-and-forward | Queue with consent; sync when network returns |
-| Later | More language pairs | Add only after quality evaluation |
-| Research | Voice-preserving synthesis | Opt-in voice ownership/consent and misuse safeguards |
-| Research | Local on-device inference | Device support, model size, accuracy, battery tradeoffs |
-| Research | Speaker diarization | Differentiate overlapping voices with measured reliability |
+| Priority | Capability                           | Acceptance idea                                                   |
+| -------- | ------------------------------------ | ----------------------------------------------------------------- |
+| MVP      | Configurable language selection      | Each participant can choose supported source and target languages |
+| MVP      | Microphone permission and input      | Clear consent prompt, mute/stop available                         |
+| MVP      | Speech recognition                   | Interim/final recognized text displayed                           |
+| MVP      | Translation                          | Clearly labeled source and target text                            |
+| MVP      | Optional translated TTS              | Play and stop translated speech                                   |
+| MVP      | Error / loading states               | API failure and disconnection visibly handled                     |
+| MVP      | Basic privacy controls               | No recording without explicit user action                         |
+| Next     | Two-person room links                | Each device joins its own secure session                          |
+| Next     | Automatic source language detection  | User can override incorrect detection                             |
+| Next     | Per-person audio/caption preferences | Independent listener settings                                     |
+| Next     | Network diagnostics                  | Measure round-trip delay, loss/jitter where exposed               |
+| Next     | Text fallback and re-send            | Recover from transient audio failure                              |
+| Next     | Mobile-responsive PWA                | Usable on phone-sized screens                                     |
+| Next     | Cost/latency instrumentation         | Log aggregate timings without storing speech content              |
+| Later    | Conference/QR audience join          | One speaker; multiple translated language channels                |
+| Later    | Zoom Apps/RTMS integration           | Validate availability, consent, approved audio access             |
+| Later    | Offline-friendly store-and-forward   | Queue with consent; sync when network returns                     |
+| Later    | More language pairs                  | Add only after quality evaluation                                 |
+| Research | Voice-preserving synthesis           | Opt-in voice ownership/consent and misuse safeguards              |
+| Research | Local on-device inference            | Device support, model size, accuracy, battery tradeoffs           |
+| Research | Speaker diarization                  | Differentiate overlapping voices with measured reliability        |
 
 ## UX expectations
 
