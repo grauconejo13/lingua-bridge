@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { App } from './App';
+import { SoloPage as App } from './SoloPage';
 
 function stubHealth(demoMode: boolean) {
   vi.stubGlobal(
@@ -21,7 +21,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('App', () => {
+describe('SoloPage', () => {
   it('does not request the microphone until asked', async () => {
     const getUserMedia = vi.fn();
     Object.defineProperty(navigator, 'mediaDevices', {
