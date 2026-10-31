@@ -11,20 +11,21 @@
 
 ## Repository roles
 
-| | Public: `lingua-bridge` | Private (proposed): `lingua-bridge-platform` |
-| --- | --- | --- |
-| Purpose | Reviewable portfolio MVP and technical case study | Product development and commercial operations |
-| Code | Demonstrable speech capture, translation, caption/audio UI, tests, sample configuration | Production-grade orchestration, premium features, billing, admin tools, vendor-specific optimizations |
-| Documentation | Setup, architecture at a non-sensitive level, accessibility and performance results | Threat models, internal runbooks, operating costs, rollout plans, internal design decisions |
-| Data | Synthetic fixtures only | Minimal live data only when authorized and necessary |
-| Deployment | Public demo with quotas and non-sensitive environment settings | Production staging and live services with controlled access |
-| Status | Exists; documentation-only | Not yet created |
+|               | Public: `lingua-bridge`                                                                 | Private (proposed): `lingua-bridge-platform`                                                          |
+| ------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Purpose       | Reviewable portfolio MVP and technical case study                                       | Product development and commercial operations                                                         |
+| Code          | Demonstrable speech capture, translation, caption/audio UI, tests, sample configuration | Production-grade orchestration, premium features, billing, admin tools, vendor-specific optimizations |
+| Documentation | Setup, architecture at a non-sensitive level, accessibility and performance results     | Threat models, internal runbooks, operating costs, rollout plans, internal design decisions           |
+| Data          | Synthetic fixtures only                                                                 | Minimal live data only when authorized and necessary                                                  |
+| Deployment    | Public demo with quotas and non-sensitive environment settings                          | Production staging and live services with controlled access                                           |
+| Status        | Exists; documentation-only                                                              | Not yet created                                                                                       |
 
-The public MVP may be functionally complete within its *limited* scope. The private repository is not a substitute for secure hosting, access controls, and secret management.
+The public MVP may be functionally complete within its _limited_ scope. The private repository is not a substitute for secure hosting, access controls, and secret management.
 
 ## Functional boundary
 
 **Public MVP candidates**
+
 - Language registry with provider-supported languages (do not hardcode the architecture to one pair).
 - User-configurable spoken and listening languages.
 - Speech capture, translated text, and optional synthesized audio.
@@ -33,6 +34,7 @@ The public MVP may be functionally complete within its *limited* scope. The priv
 - Demo documentation and measured latency/quality outcomes.
 
 **Private product candidates**
+
 - Advanced multi-user rooms, conferencing and authorized platform integrations.
 - Adaptive network logic, delivery guarantees and store-and-forward infrastructure.
 - Subscription billing, organization controls, analytics, and usage enforcement.
@@ -43,7 +45,7 @@ These are proposed boundaries, not guarantees. Publish only non-sensitive inform
 ## Code-sharing approach
 
 1. **Start with one public MVP.** Avoid premature duplication until the core architecture and deployment prove useful.
-2. **Create the private product repository when commercial development begins.** Set it private *before* pushing proprietary material.
+2. **Create the private product repository when commercial development begins.** Set it private _before_ pushing proprietary material.
 3. **Choose a single source of truth for shared code.** Prefer an explicitly versioned shared module/package (or controlled upstream sync), rather than manually copying files both ways.
 4. **Review synchronization direction.** Public-to-private adoption can be straightforward; private-to-public contributions require a deliberate review for secrets, licenses, user data, internal URLs, contracts, and proprietary logic.
 5. **Document dependencies and releases.** Pin package versions, test compatibility, and record whether changes apply to both products.

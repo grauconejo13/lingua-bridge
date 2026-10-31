@@ -1,0 +1,29 @@
+{
+  "name": "@lingua-bridge/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Lingua Bridge API: holds provider credentials and orchestrates transcription, translation and speech.",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json",
+    "bench": "tsx scripts/bench.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.2.0",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/multipart": "^10.1.6",
+    "@fastify/rate-limit": "^11.2.1",
+    "@fastify/static": "^10.1.8",
+    "@lingua-bridge/shared": "*",
+    "fastify": "^5.12.7",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsup": "^9.0.0",
+    "tsx": "^4.23.15"
+  }
+}
