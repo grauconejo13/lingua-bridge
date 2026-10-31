@@ -66,6 +66,9 @@ export async function buildApp({
   await app.register(rateLimit, {
     max: config.rateLimit.max,
     timeWindow: config.rateLimit.timeWindow,
+    // Only the API costs money. Page loads and assets shouldn't use up the budget, which
+    // matters when two people in the same place share one public IP address.
+    allowList: (request) => !request.url.startsWith('/api/'),
     errorResponseBuilder: (_request, context) => ({
       statusCode: context.statusCode,
       code: 'RATE_LIMITED',
