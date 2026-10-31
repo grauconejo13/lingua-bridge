@@ -42,7 +42,7 @@ describe('SoloPage', () => {
     stubHealth(true);
     render(<App />);
     expect(await screen.findByText('Demo mode.')).toBeInTheDocument();
-    expect(screen.getByText('Demo server')).toBeInTheDocument();
+    expect(screen.getByText('Demo', { selector: '.status-pill' })).toBeInTheDocument();
   });
 
   it('swaps languages and remembers the choice', async () => {

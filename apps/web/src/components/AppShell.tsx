@@ -117,7 +117,7 @@ function ConnectionStatus({
     label = 'Server unreachable';
   } else {
     tone = health.health.demoMode ? 'warn' : 'ok';
-    label = health.health.demoMode ? 'Demo server' : 'Connected';
+    label = health.health.demoMode ? 'Demo' : 'Connected';
   }
   return (
     <button

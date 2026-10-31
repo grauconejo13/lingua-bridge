@@ -25,7 +25,7 @@ export class ApiClientError extends Error {
   }
 }
 
-async function request(input: string, init?: RequestInit): Promise<Response> {
+export async function request(input: string, init?: RequestInit): Promise<Response> {
   let response: Response;
   try {
     response = await fetch(input, init);
