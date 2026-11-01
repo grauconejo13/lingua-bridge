@@ -45,3 +45,4 @@ npm run build         # production build of web and server
 - The server's `mock` provider makes no network calls, so API tests and local demos never need a key or spend money.
 - Provider adapters take an injected `fetch`, so tests check exactly what is sent without calling the real API.
 - Tests assert that provider error details and keys never reach a client response.
+- Room logic (`RoomService`) takes stub connections, so join, resume, replay, receipts and idempotency are tested without sockets. A separate suite runs the real server on a random port with WebSocket clients.

@@ -9,9 +9,9 @@ export default defineConfig({
   server: {
     port: 5173,
     // Same-origin /api in development, so no CORS setup is needed.
-    proxy: { '/api': apiTarget },
+    proxy: { '/api': { target: apiTarget, ws: true } },
   },
-  preview: { proxy: { '/api': apiTarget } },
+  preview: { proxy: { '/api': { target: apiTarget, ws: true } } },
   test: {
     name: 'web',
     environment: 'jsdom',

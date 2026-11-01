@@ -11,6 +11,7 @@ interface Props {
   textSize: TextSize;
   autoplay: boolean;
   canClear: boolean;
+  clearLabel?: string;
   onTextSize: (size: TextSize) => void;
   onAutoplay: (value: boolean) => void;
   onClear: () => void;
@@ -20,6 +21,7 @@ export function SettingsMenu({
   textSize,
   autoplay,
   canClear,
+  clearLabel = 'Clear conversation',
   onTextSize,
   onAutoplay,
   onClear,
@@ -68,7 +70,7 @@ export function SettingsMenu({
         </label>
 
         <button type="button" className="button ghost" onClick={onClear} disabled={!canClear}>
-          Clear conversation
+          {clearLabel}
         </button>
         <p className="fine-print">
           Captions live only in this tab and disappear when you close it.

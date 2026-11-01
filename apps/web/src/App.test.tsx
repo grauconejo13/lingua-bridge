@@ -1,69 +1,77 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from './App';
 
-function stubHealth(demoMode: boolean) {
+function go(url: string) {
+  window.history.pushState({}, '', url);
+}
+
+beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async () =>
       Response.json({
         status: 'ok',
-        provider: demoMode ? 'mock' : 'openai',
-        demoMode,
+        provider: 'mock',
+        demoMode: true,
         limits: { maxAudioBytes: 1, maxTtsChars: 1 },
       }),
     ),
   );
-}
+});
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  go('/');
 });
 
-describe('App', () => {
-  it('does not request the microphone until asked', async () => {
-    const getUserMedia = vi.fn();
-    Object.defineProperty(navigator, 'mediaDevices', {
-      value: { getUserMedia },
-      configurable: true,
+describe('routing', () => {
+  it('shows the one-device translator at /', () => {
+    go('/');
+    render(<App />);
+    expect(screen.getByLabelText('Translate to')).toBeInTheDocument();
+  });
+
+  it('shows the start screen at /conversation', () => {
+    go('/conversation');
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Start conversation' })).toBeInTheDocument();
+  });
+
+  it('explains a room link without its secret', () => {
+    go('/r/abc123');
+    render(<App />);
+    expect(screen.getByText('This link is incomplete')).toBeInTheDocument();
+  });
+
+  it('asks an invited person for their language before joining', async () => {
+    const sockets: string[] = [];
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        static OPEN = 1;
+        readyState = 0;
+        constructor(url: string) {
+          sockets.push(url);
+        }
+        send() {}
+        close() {}
+      },
+    );
+    go('/r/abc123#secret-value');
+    render(<App />);
+
+    expect(screen.getByText("You've been invited to a conversation")).toBeInTheDocument();
+    expect(sockets).toHaveLength(0);
+
+    await userEvent.selectOptions(screen.getByLabelText('I speak'), 'ko');
+    await userEvent.click(screen.getByRole('button', { name: 'Join conversation' }));
+
+    expect(sockets[0]).toMatch(/\/api\/rooms\/ws$/);
+    expect(JSON.parse(localStorage.getItem('lingua-bridge:room:abc123')!)).toMatchObject({
+      language: 'ko',
     });
-    vi.stubGlobal('MediaRecorder', class {});
-    stubHealth(false);
-
-    render(<App />);
-
-    expect(await screen.findByRole('button', { name: /turn on microphone/i })).toBeVisible();
-    expect(getUserMedia).not.toHaveBeenCalled();
-    expect(await screen.findByText('Connected')).toBeInTheDocument();
-  });
-
-  it('says plainly when the server is in demo mode', async () => {
-    stubHealth(true);
-    render(<App />);
-    expect(await screen.findByText('Demo mode.')).toBeInTheDocument();
-    expect(screen.getByText('Demo server')).toBeInTheDocument();
-  });
-
-  it('swaps languages and remembers the choice', async () => {
-    stubHealth(false);
-    render(<App />);
-    const speak = screen.getByLabelText('I speak') as HTMLSelectElement;
-    const target = screen.getByLabelText('Translate to') as HTMLSelectElement;
-    await userEvent.selectOptions(speak, 'ja');
-    await userEvent.selectOptions(target, 'fr');
-
-    await userEvent.click(screen.getByRole('button', { name: 'Swap languages' }));
-
-    expect(speak.value).toBe('fr');
-    expect(target.value).toBe('ja');
-    expect(localStorage.getItem('lingua-bridge:source')).toBe('"fr"');
-  });
-
-  it('explains when recording is not supported', async () => {
-    vi.stubGlobal('MediaRecorder', undefined);
-    stubHealth(false);
-    render(<App />);
-    expect(await screen.findByText(/can't record audio/i)).toBeInTheDocument();
+    expect(screen.getByText('Waiting for the other person')).toBeInTheDocument();
   });
 });

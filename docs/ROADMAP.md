@@ -8,7 +8,7 @@
 - [ ] Estimate provider cost/translation minute.
 - [ ] Define privacy and consent baseline.
 
-## Phase 1: One-device MVP (current)
+## Phase 1: One-device MVP
 
 - [x] Scaffold React/Vite/TypeScript UI and Node backend.
 - [x] Secure API integration and microphone permission.
@@ -21,15 +21,16 @@
 
 **Gate:** Can someone demonstrate a translation with transparent permissions that meets the [Milestone 1 targets](BENCHMARKS.md#targets-for-the-milestone-1-gate): median stop-to-caption ≤ 1.5 s, p95 ≤ 3 s, adequacy ≥ 4/5?
 
-## Phase 2: Two-person conversation
+## Phase 2: Two-person conversation (current)
 
-- [ ] Joinable rooms with language preferences per listener.
-- [ ] Bidirectional audio/text delivery and interruption handling.
-- [ ] Avoid feedback loops/overlapping playback.
-- [ ] Add reconnect, text/push-to-talk fallback.
+- [x] Joinable rooms with language preferences per listener.
+- [x] Bidirectional audio/text delivery and interruption handling.
+- [x] Avoid feedback loops/overlapping playback.
+- [x] Add reconnect, text/push-to-talk fallback.
+- [x] Automated two-browser test, including a closed tab and an offline sender.
 - [ ] Test with two physical devices over different connections.
 
-**Gate:** Can two people converse without losing track when one network becomes unstable?
+**Gate:** Can two people converse without losing track when one network becomes unstable? Concretely: with one device switched offline for 30 seconds mid-conversation, no message is lost or duplicated, every message reaches _Delivered_ within 10 seconds of reconnecting, and neither person has to reload.
 
 ## Phase 3: Adaptive low-bandwidth experience
 
