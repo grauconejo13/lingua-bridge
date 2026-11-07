@@ -1,5 +1,6 @@
 import type { CreateTalkResponse, LanguageCode, TalkSegment } from '@lingua-bridge/shared';
 import { request } from './api';
+import { appendDuration } from './recording-durations';
 import { apiUrl } from './config';
 import { networkMonitor } from './network-monitor';
 
@@ -26,6 +27,7 @@ export async function sendTalkSpeech(
   const form = new FormData();
   form.append('clientSegmentId', body.clientSegmentId);
   form.append('audio', body.audio, 'segment');
+  appendDuration(form, body.audio);
   const startedAt = performance.now();
   const response = await request(`/api/talks/${encodeURIComponent(talkId)}/segments`, {
     method: 'POST',

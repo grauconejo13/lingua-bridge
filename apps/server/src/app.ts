@@ -23,6 +23,9 @@ import { translateUtterance } from './pipeline';
 import type { SpeechProvider } from './providers';
 import { registerRooms } from './rooms/routes';
 import { registerTalks } from './talks/routes';
+import { registerAdmin } from './usage/admin-routes';
+import { FREE, UsageMeter } from './usage/meter';
+import { MeteredProvider } from './usage/metered-provider';
 import { readAudioUpload } from './upload';
 
 export interface BuildAppOptions {
@@ -40,9 +43,17 @@ export function requireLanguage(value: unknown, field: string): LanguageCode {
 
 export async function buildApp({
   config,
-  provider,
+  provider: rawProvider,
   logger = true,
 }: BuildAppOptions): Promise<FastifyInstance> {
+  // Every provider call, from every feature, goes through the meter and its budget.
+  const meter = new UsageMeter({
+    budgetUsd: config.usage.budgetUsd,
+    prices: rawProvider.demoMode ? FREE : config.usage.prices,
+    file: config.usage.file,
+  });
+  const provider = new MeteredProvider(rawProvider, meter);
+
   // Fastify's request log records method, URL and status only. Bodies (speech and
   // transcripts) are never logged anywhere in this server.
   const app = Fastify({ logger: logger ? { level: config.logLevel } : false });
@@ -131,6 +142,8 @@ export async function buildApp({
     provider: provider.id,
     demoMode: provider.demoMode,
     limits: { maxAudioBytes: config.maxAudioBytes, maxTtsChars: config.maxTtsChars },
+    available: !meter.unavailableReason(),
+    unavailableReason: meter.unavailableReason(),
   }));
 
   app.get('/api/languages', async (): Promise<LanguagesResponse> => ({
@@ -138,13 +151,14 @@ export async function buildApp({
   }));
 
   app.post('/api/utterances', async (request) => {
-    const { fields, audio, mimeType } = await readAudioUpload(request);
+    const { fields, audio, mimeType, durationMs } = await readAudioUpload(request);
     const sourceLanguage = requireLanguage(fields.sourceLanguage, 'sourceLanguage');
     const targetLanguage = requireLanguage(fields.targetLanguage, 'targetLanguage');
 
     const result = await translateUtterance(provider, {
       audio,
       mimeType,
+      durationMs,
       sourceLanguage,
       targetLanguage,
     });
@@ -191,8 +205,19 @@ export async function buildApp({
   );
 
   await app.register(websocket, { options: { maxPayload: 16 * 1024 } });
-  await registerRooms(app, { config, provider });
-  await registerTalks(app, { config, provider });
+  const rooms = await registerRooms(app, { config, provider });
+  const talks = await registerTalks(app, { config, provider });
+  registerAdmin(app, {
+    token: config.adminToken,
+    meter,
+    provider,
+    live: () => ({
+      rooms: rooms.store.size,
+      talks: talks.store.size,
+      listeners: talks.store.listenerCount(),
+    }),
+  });
+  app.addHook('onClose', async () => meter.save());
 
   app.all('/api/*', async () => {
     throw new AppError('BAD_REQUEST', 'Unknown API route.', 404);

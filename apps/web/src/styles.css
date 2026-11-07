@@ -1172,3 +1172,54 @@ input {
   margin-top: 4px;
   font-size: 0.85rem;
 }
+
+/* ---------- Admin ---------- */
+
+.admin-big {
+  margin: 4px 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+.admin-meter {
+  height: 12px;
+  margin: 8px 0;
+}
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.admin-stats div {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.admin-stats dt {
+  color: var(--ink-2);
+  font-size: 0.85rem;
+}
+.admin-stats dd {
+  margin: 2px 0 0;
+  font-size: 1.4rem;
+  font-weight: 650;
+}
+.admin-table-wrap {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+.admin-table th,
+.admin-table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.admin-table th:first-child,
+.admin-table td:first-child {
+  text-align: left;
+}

@@ -8,6 +8,7 @@ import {
   type TalkSegment,
 } from '@lingua-bridge/shared';
 import { AppShell } from './components/AppShell';
+import { Notices } from './components/Notices';
 import { useCaptionAudio } from './hooks/useCaptionAudio';
 import { useHealth } from './hooks/useHealth';
 import { useOnline } from './hooks/useOnline';
@@ -151,33 +152,35 @@ export function AudiencePage({ talkId }: { talkId: string }) {
         </label>
       </section>
 
-      {fatalMessage && (
-        <p className="banner error" role="alert">
-          {fatalMessage}
-        </p>
-      )}
-      {ended && (
-        <p className="banner" role="status">
-          The presentation has ended. Captions stay on this screen until you close it.
-        </p>
-      )}
-      {state.status === 'reconnecting' && !ended && (
-        <p className="banner warning" role="status">
-          Reconnecting… You won't miss anything; captions catch up when the connection is back.
-        </p>
-      )}
-      {state.languageUnavailable && talk && !ended && (
-        <p className="banner warning" role="status">
-          This presentation is already translating into its limit of {talk.maxLanguages} languages,
-          so you're reading the original {getLanguage(talk.language).englishName}. Translation
-          starts automatically if a slot frees up.
-        </p>
-      )}
-      {audio.error && (
-        <p className="banner warning" role="status">
-          {audio.error}
-        </p>
-      )}
+      <Notices label="Presentation status">
+        {fatalMessage && (
+          <p className="banner error" role="alert">
+            {fatalMessage}
+          </p>
+        )}
+        {ended && (
+          <p className="banner" role="status">
+            The presentation has ended. Captions stay on this screen until you close it.
+          </p>
+        )}
+        {state.status === 'reconnecting' && !ended && (
+          <p className="banner warning" role="status">
+            Reconnecting… You won't miss anything; captions catch up when the connection is back.
+          </p>
+        )}
+        {state.languageUnavailable && talk && !ended && (
+          <p className="banner warning" role="status">
+            This presentation is already translating into its limit of {talk.maxLanguages}{' '}
+            languages, so you're reading the original {getLanguage(talk.language).englishName}.
+            Translation starts automatically if a slot frees up.
+          </p>
+        )}
+        {audio.error && (
+          <p className="banner warning" role="status">
+            {audio.error}
+          </p>
+        )}
+      </Notices>
 
       <main className="feed talk-feed" aria-label="Captions" ref={feedRef}>
         {state.segments.length === 0 && talk && !ended && (

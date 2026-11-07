@@ -102,10 +102,15 @@ export async function registerTalks(
 
   app.post<{ Params: { talkId: string } }>('/api/talks/:talkId/segments', async (request) => {
     const talk = service.authorize(request.params.talkId, bearer(request));
-    const { fields, audio, mimeType } = await readAudioUpload(request);
+    const { fields, audio, mimeType, durationMs } = await readAudioUpload(request);
     const id = clientSegmentId.safeParse(fields.clientSegmentId);
     if (!id.success) throw new AppError('BAD_REQUEST', 'Missing or invalid clientSegmentId.', 400);
-    const segment = await service.addSpeech(talk, { clientSegmentId: id.data, audio, mimeType });
+    const segment = await service.addSpeech(talk, {
+      clientSegmentId: id.data,
+      audio,
+      mimeType,
+      durationMs,
+    });
     request.log.info(
       {
         talk: talk.id,

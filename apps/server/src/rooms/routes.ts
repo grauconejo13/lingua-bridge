@@ -105,13 +105,14 @@ export async function registerRooms(
 
   app.post<{ Params: { roomId: string } }>('/api/rooms/:roomId/utterances', async (request) => {
     const { room, participant } = service.authorize(request.params.roomId, bearer(request));
-    const { fields, audio, mimeType } = await readAudioUpload(request);
+    const { fields, audio, mimeType, durationMs } = await readAudioUpload(request);
     const id = clientMessageId.safeParse(fields.clientMessageId);
     if (!id.success) throw new AppError('BAD_REQUEST', 'Missing or invalid clientMessageId.', 400);
     const message = await service.sendSpeech(room, participant, {
       clientMessageId: id.data,
       audio,
       mimeType,
+      durationMs,
     });
     request.log.info(
       { room: room.id, kind: 'speech', audioBytes: audio.byteLength, ...message.timings },

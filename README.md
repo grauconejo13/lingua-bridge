@@ -43,6 +43,12 @@ Lingua Bridge is an accessibility-minded multilingual communication platform. It
 - Adjustable caption size, light and dark themes, phone-first layout, reduced-motion support.
 - Server-side API key, rate limiting, size limits, strict content security policy, and no storage or logging of audio or transcripts.
 
+**Running a public demo safely**
+
+- A daily spending cap (default $5, estimated from configurable prices) covers every feature. When it's reached, visitors see a clear message instead of errors, and it resets at midnight UTC.
+- An operator page at `/admin` (enabled by setting `ADMIN_TOKEN`) shows today's estimated spend against the budget, live conversations and listeners, provider latency and failures, and a switch to pause translation instantly. It shows counts only, never anything that was said.
+- Checked with axe-core on every screen in light and dark mode, plus keyboard and focus checks: zero violations after fixes, and axe runs in CI. See [Accessibility](docs/ACCESSIBILITY.md).
+
 ## Quick start
 
 Requires Node.js 22 or later.
@@ -142,11 +148,13 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 **Milestone 3 (built):** presentations to many listeners via a QR code, with pause-based captioning and per-language translation.
 
-**Next:** measure accuracy, latency and cost with a real provider on physical devices, and deploy a public demo.
+**Milestone 4 (built):** public-demo readiness: spending cap, operator page with a pause switch, and an accessibility audit with fixes.
+
+**Next:** deploy the API, add an OpenAI key under the cap, and measure accuracy, latency and real cost on physical devices.
 
 **Later:** Zoom plugin (needs Zoom developer access and marketplace review), offline-capable experiences where feasible, expanded languages.
 
-See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), [Deployment](docs/DEPLOYMENT.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
+See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), [Deployment](docs/DEPLOYMENT.md), [Accessibility](docs/ACCESSIBILITY.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
 
 ## Code quality
 
@@ -184,6 +192,7 @@ See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Arc
 - [x] Network resilience testing under simulated throttling, freezes and drops
 - [x] Adaptive audio bitrate from measured connection quality
 - [x] Presentations: QR join, pause-based captions, per-language translation, audience load test
+- [x] Spending cap, pause switch and operator page; accessibility audit with CI checks
 - [ ] Resilience testing on real devices and throttled networks
 - [ ] Deployment and public demo
 

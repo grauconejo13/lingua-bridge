@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { rememberDuration } from '../lib/recording-durations';
 import { Segmenter } from '../lib/segmenter';
 import { createRecorder, isRecordingSupported, pickMimeType, type MicState } from './useRecorder';
 
@@ -61,9 +62,13 @@ export function useSegmentedRecorder({
     };
     recorder.onstop = () => {
       if ((recorder as MediaRecorder & { keep?: boolean }).keep) {
+        const durationMs = Math.round(performance.now() - startedAt);
         onSegmentRef.current({
-          blob: new Blob(chunks, { type: recorder.mimeType || mimeType || 'audio/webm' }),
-          durationMs: Math.round(performance.now() - startedAt),
+          blob: rememberDuration(
+            new Blob(chunks, { type: recorder.mimeType || mimeType || 'audio/webm' }),
+            durationMs,
+          ),
+          durationMs,
         });
       }
     };

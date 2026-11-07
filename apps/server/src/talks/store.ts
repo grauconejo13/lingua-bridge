@@ -199,6 +199,12 @@ export class TalkStore {
     return this.talks.get(id);
   }
 
+  listenerCount(): number {
+    let count = 0;
+    for (const talk of this.talks.values()) count += talk.listeners.size;
+    return count;
+  }
+
   delete(id: string): void {
     this.talks.delete(id);
   }
