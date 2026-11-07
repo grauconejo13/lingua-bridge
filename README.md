@@ -4,7 +4,7 @@
 
 Lingua Bridge is an accessibility-minded multilingual communication platform. It aims to help people communicate across language barriers and unreliable network connections, using familiar devices rather than specialized hardware.
 
-> **Status: Milestone 2 prototype.** Two modes in the browser: a one-device translator, and two-device conversations where each person speaks their own language on their own phone. Both run end to end with a keyless **demo provider** (placeholder text, clearly labeled), and an **OpenAI adapter** handles real transcription, translation and speech. Live latency and translation quality have not been measured with a real provider yet, so no performance claims are made. Zoom integration and adaptive bandwidth are not built.
+> **Status: Milestone 2 prototype, Phase 3 underway.** Two modes in the browser: a one-device translator, and two-device conversations where each person speaks their own language on their own phone. Both run end to end with a keyless **demo provider** (placeholder text, clearly labeled), and an **OpenAI adapter** handles real transcription, translation and speech. Live latency and translation quality have not been measured with a real provider yet, so no performance claims are made. The app now measures its own connection and adapts audio quality to it; reliability under simulated bad networks is measured (see [Benchmarks](docs/BENCHMARKS.md#network-resilience-simulated)). Zoom integration is not built.
 
 ## What works today
 
@@ -17,6 +17,12 @@ Lingua Bridge is an accessibility-minded multilingual communication platform. It
 - Live presence: connected, reconnecting, or speaking. Translated speech never auto-plays while either person is recording, so one phone's speaker doesn't end up in the other's transcript.
 - Survives bad connections: automatic reconnect with backoff, replay of anything missed while away, and failed sends retried on their own (sends are idempotent, so retries never duplicate). Refreshing or reopening the link rejoins the same seat.
 - Two seats per room, rooms live only in server memory and end after 30 minutes of inactivity.
+
+**Network awareness** (both modes)
+
+- The app times its own round trips and audio uploads, and shows the result as signal bars with a full description for screen readers ("Fair connection, 450 ms round trip, speech sent at 20 kbit/s").
+- Speech is recorded at 32, 20 or 12 kbit/s depending on the measured connection, and never above 20 kbit/s with the browser's data saver on.
+- On a weak link a short banner says what the app is doing about it.
 
 **One device** (`/`)
 
@@ -70,6 +76,17 @@ npm run bench -- --to <language-code> --runs 10
 
 It synthesizes test phrases, sends them back through the pipeline, and reports median and p95 timings. See [Benchmarks](docs/BENCHMARKS.md) for the method and targets.
 
+### Network resilience simulation
+
+No server needed:
+
+```bash
+npm run resilience                                  # every profile
+npm run resilience -- --profile worst --seed 7      # one profile, another schedule
+```
+
+Two simulated people talk through a proxy that adds latency, bandwidth limits, freezes and dropped connections, and the script reports delivery, duplicates and delays per profile.
+
 ## Project layout
 
 ```
@@ -100,7 +117,9 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 **Milestone 2 (built):** two-person rooms with independent languages, typed fallback, turn-aware playback, reconnection and delivery receipts.
 
-**Next:** measure accuracy, latency and cost with a real provider on two physical devices, then adapt to weak networks (Phase 3).
+**Phase 3 (in progress):** measured network quality, adaptive audio bitrate and a reproducible bad-network simulation are built. Still to do: queued sends that survive closing the tab, and real-device tests on throttled networks.
+
+**Next:** measure accuracy, latency and cost with a real provider on two physical devices.
 
 **Later:** conference mode, Zoom plugin, offline-capable experiences where feasible, expanded languages.
 
@@ -122,6 +141,7 @@ See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Arc
 ## Privacy in the prototype
 
 - The microphone is requested only after you tap **Turn on microphone**, and **Turn off mic** releases it.
+- Network measurements (round-trip times and upload speed) stay in the tab's memory and are never sent anywhere.
 - Each recording is sent once to the server, passed to the provider, and discarded. The server never writes audio or transcripts to disk or logs; logs contain language codes, sizes and timings only.
 - One-device captions live in the browser tab's memory and disappear when the tab closes. Only preferences (languages, caption size, autoplay) are saved locally.
 - In a conversation, the server keeps the room's recent messages (text only, up to 100) in memory so a reconnecting person can catch up. They are gone when the room ends after 30 idle minutes or the server restarts. Each device stores only its seat token for that room, which expires after 12 hours.
@@ -137,7 +157,9 @@ See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Arc
 - [x] Two-person rooms with reconnect, replay and delivery receipts
 - [ ] Measured latency, quality and cost with a real provider
 - [ ] Two physical devices over different networks
-- [ ] Network resilience testing under throttling
+- [x] Network resilience testing under simulated throttling, freezes and drops
+- [x] Adaptive audio bitrate from measured connection quality
+- [ ] Resilience testing on real devices and throttled networks
 - [ ] Deployment and public demo
 
 ## Portfolio goal

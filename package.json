@@ -22,7 +22,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run test",
-    "bench": "npm run bench -w @lingua-bridge/server --"
+    "bench": "npm run bench -w @lingua-bridge/server --",
+    "resilience": "npm run resilience -w @lingua-bridge/server --"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

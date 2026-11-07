@@ -34,11 +34,11 @@
 
 ## Phase 3: Adaptive low-bandwidth experience
 
-- [ ] Capture network quality metrics where available.
-- [ ] Adapt audio encoding/transmission where controllable.
-- [ ] Add opt-in queued recordings/text with acknowledgements.
-- [ ] Simulate throttling, dropouts, congestion and high RTT.
-- [ ] Publish measured results with reproducible test setups.
+- [x] Capture network quality metrics where available (WebSocket round trips, upload throughput; connection labels only as a fallback).
+- [x] Adapt audio encoding/transmission where controllable (Opus bitrate by measured tier, capped under data saver).
+- [ ] Add opt-in queued recordings/text with acknowledgements (sends already retry and are acknowledged; queuing that survives closing the tab is not built).
+- [x] Simulate throttling, dropouts, congestion and high RTT (`npm run resilience`: seeded TCP proxy with latency, jitter, bandwidth caps, stalls and resets).
+- [x] Publish measured results with reproducible test setups (simulated results in [Benchmarks](BENCHMARKS.md); real-device runs still to do).
 
 ## Phase 4: Platform expansion
 

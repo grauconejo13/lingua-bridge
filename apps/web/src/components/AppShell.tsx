@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import type { HealthState } from '../hooks/useHealth';
+import { useNetwork } from '../hooks/useNetwork';
 import type { TextSize } from '../types';
+import { NetworkSignal, WeakNetworkBanner } from './NetworkSignal';
 import { SettingsMenu } from './SettingsMenu';
 
 interface Props {
@@ -37,6 +39,7 @@ export function AppShell({
   children,
 }: Props) {
   const demoMode = health.status === 'ok' && health.health.demoMode;
+  const network = useNetwork();
 
   return (
     <div className="app" data-text-size={textSize}>
@@ -57,6 +60,7 @@ export function AppShell({
         </a>
         <div className="topbar-right">
           {actions}
+          {online && <NetworkSignal network={network} />}
           <ConnectionStatus online={online} health={health} onRetry={onCheckHealth} />
           <SettingsMenu
             textSize={textSize}
@@ -84,6 +88,7 @@ export function AppShell({
           </button>
         </p>
       )}
+      {online && <WeakNetworkBanner network={network} />}
       {!online && (
         <p className="banner warning" role="alert">
           {offlineMessage}

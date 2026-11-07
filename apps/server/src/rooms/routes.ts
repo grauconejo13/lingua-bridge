@@ -38,7 +38,7 @@ const ClientEventSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('speaking'), speaking: z.boolean() }),
   z.object({ type: z.literal('language'), language: languageCode }),
   z.object({ type: z.literal('ack'), messageId: z.string().min(1).max(64) }),
-  z.object({ type: z.literal('ping') }),
+  z.object({ type: z.literal('ping'), t: z.number().finite().optional() }),
   z.object({ type: z.literal('leave') }),
 ]);
 
@@ -179,7 +179,10 @@ export async function registerRooms(
       }
 
       if (event.type === 'ping') {
-        service.send(connection, { type: 'pong' });
+        service.send(
+          connection,
+          event.t === undefined ? { type: 'pong' } : { type: 'pong', t: event.t },
+        );
         return;
       }
 

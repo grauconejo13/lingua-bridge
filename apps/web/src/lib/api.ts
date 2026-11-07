@@ -7,6 +7,7 @@ import type {
   SpeechRequest,
   UtteranceResponse,
 } from '@lingua-bridge/shared';
+import { networkMonitor } from './network-monitor';
 
 /** A failed API call, with a message that is safe to show. */
 export class ApiClientError extends Error {
@@ -75,8 +76,18 @@ export async function sendUtterance(
   form.append('sourceLanguage', input.sourceLanguage);
   form.append('targetLanguage', input.targetLanguage);
   form.append('audio', input.audio, 'utterance');
+  const startedAt = performance.now();
   const response = await request('/api/utterances', { method: 'POST', body: form, signal });
-  return response.json() as Promise<UtteranceResponse>;
+  const result = (await response.json()) as UtteranceResponse;
+  // Measurement is best effort and must never break a send.
+  if (result.timings) {
+    networkMonitor.addUpload(
+      input.audio.size,
+      performance.now() - startedAt,
+      result.timings.transcribeMs + result.timings.translateMs,
+    );
+  }
+  return result;
 }
 
 export async function fetchSpeech(body: SpeechRequest, signal?: AbortSignal): Promise<Blob> {
