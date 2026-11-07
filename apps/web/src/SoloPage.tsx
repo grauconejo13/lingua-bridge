@@ -197,9 +197,14 @@ export function SoloPage() {
       onClear={clearConversation}
       offlineMessage="You're offline. Recordings can't be translated until you reconnect, and failed ones can be retried."
       actions={
-        <a className="status-pill mode-link" href="/conversation">
-          Two devices
-        </a>
+        <>
+          <a className="status-pill mode-link" href="/conversation">
+            Two devices
+          </a>
+          <a className="status-pill mode-link" href="/present">
+            Present
+          </a>
+        </>
       }
     >
       <LanguageBar
@@ -221,7 +226,8 @@ export function SoloPage() {
             </ol>
             <p className="empty-more">
               Talking with someone on their own phone?{' '}
-              <a href="/conversation">Start a two-device conversation</a>.
+              <a href="/conversation">Start a two-device conversation</a>. Presenting to a room?{' '}
+              <a href="/present">Start a presentation</a>.
             </p>
           </div>
         ) : (

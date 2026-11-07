@@ -4,10 +4,22 @@ import QRCode from 'qrcode';
 interface Props {
   link: string;
   idleMinutes?: number;
+  /** Overrides for screens other than a two-person conversation. */
+  title?: string;
+  note?: string;
+  shareTitle?: string;
+  qrLabel?: string;
 }
 
 /** Link, QR code and share/copy buttons for inviting the other person. */
-export function SharePanel({ link, idleMinutes }: Props) {
+export function SharePanel({
+  link,
+  idleMinutes,
+  title = 'Invite the other person',
+  note,
+  shareTitle = 'Lingua Bridge conversation',
+  qrLabel = 'QR code for the conversation link',
+}: Props) {
   const [svg, setSvg] = useState<string>('');
   const [copied, setCopied] = useState(false);
 
@@ -36,13 +48,19 @@ export function SharePanel({ link, idleMinutes }: Props) {
   const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
 
   return (
-    <section className="share" aria-label="Invite the other person">
+    <section className="share" aria-label={title}>
       <div className="share-text">
-        <p className="share-title">Invite the other person</p>
+        <p className="share-title">{title}</p>
         <p className="fine-print">
-          Scan this code with their phone camera, or send them the link. Anyone with the link can
-          join, so share it only with them.
-          {idleMinutes ? ` The conversation ends after ${idleMinutes} minutes of inactivity.` : ''}
+          {note ?? (
+            <>
+              Scan this code with their phone camera, or send them the link. Anyone with the link
+              can join, so share it only with them.
+              {idleMinutes
+                ? ` The conversation ends after ${idleMinutes} minutes of inactivity.`
+                : ''}
+            </>
+          )}
         </p>
         <div className="share-actions">
           {canShare && (
@@ -50,9 +68,7 @@ export function SharePanel({ link, idleMinutes }: Props) {
               type="button"
               className="button primary"
               onClick={() => {
-                void navigator
-                  .share({ title: 'Lingua Bridge conversation', url: link })
-                  .catch(() => undefined);
+                void navigator.share({ title: shareTitle, url: link }).catch(() => undefined);
               }}
             >
               Share link
@@ -70,7 +86,7 @@ export function SharePanel({ link, idleMinutes }: Props) {
         <div
           className="qr"
           role="img"
-          aria-label="QR code for the conversation link"
+          aria-label={qrLabel}
           // Generated locally by the qrcode library from our own URL.
           dangerouslySetInnerHTML={{ __html: svg }}
         />

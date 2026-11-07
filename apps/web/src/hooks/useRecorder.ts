@@ -15,7 +15,7 @@ const PREFERRED_TYPES = [
   'audio/ogg;codecs=opus',
 ];
 
-function pickMimeType(): string | undefined {
+export function pickMimeType(): string | undefined {
   if (typeof MediaRecorder === 'undefined' || !MediaRecorder.isTypeSupported) return undefined;
   return PREFERRED_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
 }

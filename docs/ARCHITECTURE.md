@@ -1,6 +1,6 @@
 # Architecture
 
-> The [Milestone 1](#milestone-1-implementation), [Milestone 2](#milestone-2-implementation-two-person-rooms) and [Phase 3](#phase-3-implementation-measured-network-quality) sections describe what is built. Everything after them is the proposed longer-term design and has not been implemented.
+> The [Milestone 1](#milestone-1-implementation), [Milestone 2](#milestone-2-implementation-two-person-rooms) and [Phase 3](#phase-3-implementation-measured-network-quality) and [Milestone 3](#milestone-3-implementation-presentations) sections describe what is built. Everything after them is the proposed longer-term design and has not been implemented.
 
 ## Milestone 1 implementation
 
@@ -103,6 +103,47 @@ sequenceDiagram
 **Adapting.** The recorder asks for 32, 20 or 12 kbit/s Opus by tier (24 before anything is measured; data saver caps at 20). A 30-second turn shrinks from about 120 KB to 45 KB on a poor link. Browsers treat the bitrate as a hint, and the recorder falls back to defaults if a browser rejects the option.
 
 **Simulating.** A userspace proxy only sees a TCP byte stream, so it models loss by its consequences (stalls while TCP retransmits, and resets on handover), not as dropped packets. OS-level tools such as `tc netem` remain the way to test true packet loss.
+
+## Milestone 3 implementation: presentations
+
+```mermaid
+sequenceDiagram
+  participant P as Presenter
+  participant S as Server (talks in memory)
+  participant L1 as Listeners (es)
+  participant L2 as Listeners (ja)
+  P->>S: POST /api/talks → talkId + presenterKey (/present/:id#key)
+  L1->>S: WS hello (language es) via /t/:id
+  L2->>S: WS hello (language ja)
+  S-->>P: stats (listeners by language)
+  P->>P: mic live; segmenter cuts at a pause
+  P->>S: POST /api/talks/:id/segments (clientSegmentId, audio)
+  S->>S: transcribe once
+  S-->>P: segment (original)
+  S->>S: translate en→es, en→ja in parallel
+  S-->>L1: segment (es only)
+  S-->>L2: segment (ja only)
+  L1->>S: GET …/segments/:sid/speech?language=es (synthesized once, cached)
+```
+
+| Piece               | Where                                                | Notes                                                                                 |
+| ------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Protocol types      | `packages/shared/src/talks.ts`                       | Client and server events, limits, close codes                                         |
+| Talk store          | `apps/server/src/talks/store.ts`                     | Talks, listeners, segment history (200), language slots                               |
+| Talk logic          | `apps/server/src/talks/service.ts`                   | Per-language fan-out, lazy translation, idempotent sends, shared speech cache; no I/O |
+| HTTP and WebSocket  | `apps/server/src/talks/routes.ts`                    | Validation, per-socket event budget, heartbeat                                        |
+| Segmenter           | `apps/web/src/lib/segmenter.ts`                      | Pure: pause detection with an adaptive noise floor                                    |
+| Continuous recorder | `apps/web/src/hooks/useSegmentedRecorder.ts`         | One MediaRecorder per segment, so each blob is a complete file                        |
+| Presenter queue     | `apps/web/src/hooks/useTalkOutbox.ts`                | Sequential, ordered, idempotent retries                                               |
+| Screens             | `apps/web/src/PresenterPage.tsx`, `AudiencePage.tsx` | Controls and stats; listen-only captions                                              |
+
+**Cost scales with languages, not people.** Each segment is transcribed once. Translation runs once per language that at least one listener reads, capped by `TALK_MAX_LANGUAGES` (default 6). Slots go to languages in order of first use, so a newcomer never bumps an existing language, and a slot frees up when its last listener leaves or switches. Caption audio is synthesized at most once per segment and language and cached (400 clips), so autoplay for a whole room costs the same as for one person.
+
+**Fan-out.** The presenter and listeners reading the original get each segment immediately; each translated language is sent as soon as its own translation finishes, so a slow language never holds up the others. Every listener receives only its own language, which keeps messages small on weak connections.
+
+**Shared venue networks.** A whole audience often shares one public IP, so the listener socket and caption audio are exempt from the per-IP API rate limit. The socket is instead capped per talk (`TALK_MAX_LISTENERS`, default 300) and budgeted per socket; audio can only be requested for existing captions in languages someone reads.
+
+**Pause detection.** The segmenter cuts after 700 ms of quiet once a segment holds at least 400 ms of voice, after a 250 ms pause past 10 s, and always at 15 s. Silent stretches are thrown away rather than uploaded. Its noise floor is the quietest level of the last 3 s, rising slowly and capped, because speech has gaps between words and a fan or projector doesn't. Background tabs slow browser timers to about once a second, so pause detection gets coarser there; recording itself continues.
 
 ## Proposed long-term components
 

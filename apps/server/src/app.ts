@@ -4,6 +4,7 @@ import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import multipart from '@fastify/multipart';
 import rateLimit from '@fastify/rate-limit';
+import websocket from '@fastify/websocket';
 import fastifyStatic from '@fastify/static';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import {
@@ -21,6 +22,7 @@ import { AppError, ProviderError } from './errors';
 import { translateUtterance } from './pipeline';
 import type { SpeechProvider } from './providers';
 import { registerRooms } from './rooms/routes';
+import { registerTalks } from './talks/routes';
 import { readAudioUpload } from './upload';
 
 export interface BuildAppOptions {
@@ -68,7 +70,14 @@ export async function buildApp({
     timeWindow: config.rateLimit.timeWindow,
     // Only the API costs money. Page loads and assets shouldn't use up the budget, which
     // matters when two people in the same place share one public IP address.
-    allowList: (request) => !request.url.startsWith('/api/'),
+    // Talks are exempt in two places, because a whole audience often shares one venue IP:
+    // the listener socket (capped per talk and budgeted per socket instead) and caption
+    // audio, which is synthesized at most once per segment and language, then cached.
+    allowList: (request) =>
+      !request.url.startsWith('/api/') ||
+      request.url.startsWith('/api/talks/ws') ||
+      (request.method === 'GET' &&
+        /^\/api\/talks\/[^/]+\/segments\/[^/]+\/speech/.test(request.url)),
     errorResponseBuilder: (_request, context) => ({
       statusCode: context.statusCode,
       code: 'RATE_LIMITED',
@@ -181,7 +190,9 @@ export async function buildApp({
     },
   );
 
+  await app.register(websocket, { options: { maxPayload: 16 * 1024 } });
   await registerRooms(app, { config, provider });
+  await registerTalks(app, { config, provider });
 
   app.all('/api/*', async () => {
     throw new AppError('BAD_REQUEST', 'Unknown API route.', 404);
