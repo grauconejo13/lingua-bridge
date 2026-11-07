@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   LANGUAGES,
+  ROOM_CLIENT_TIMING,
   ROOM_MAX_NAME_CHARS,
   getLanguage,
   isLanguageCode,
@@ -22,6 +23,7 @@ import { useAutoplayQueue } from './hooks/useAutoplayQueue';
 import { useHealth } from './hooks/useHealth';
 import { useOnline } from './hooks/useOnline';
 import { usePreferences } from './hooks/usePreferences';
+import { useNetwork } from './hooks/useNetwork';
 import { useRecorder, type Recording } from './hooks/useRecorder';
 import { useRoomConnection } from './hooks/useRoomConnection';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
@@ -35,7 +37,7 @@ import {
 import { newClientMessageId, roomLink, sendRoomSpeech, sendRoomText } from './lib/rooms-api';
 import { MAX_RECORDING_MS } from './SoloPage';
 
-const RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
+const RETRY_DELAYS_MS = ROOM_CLIENT_TIMING.sendRetryMs;
 
 const FATAL_MESSAGES: Record<string, string> = {
   ROOM_NOT_FOUND: 'This conversation has ended or the link is wrong. Start a new one.',
@@ -248,6 +250,8 @@ function RoomView({ roomId, secret, session, onSession, shell, prefs, demoMode }
   const attemptsRef = useRef(new Map<string, number>());
   const retryTimersRef = useRef(new Map<string, number>());
   const deliverRef = useRef<(item: OutgoingItem) => Promise<void>>(async () => undefined);
+  /** Ids sent at least once; retries aren't timed for the network monitor. */
+  const triedRef = useRef(new Set<string>());
   const scheduleRetry = useCallback((item: OutgoingItem) => {
     const attempts = attemptsRef.current.get(item.clientMessageId) ?? 0;
     const delay = RETRY_DELAYS_MS[attempts];
@@ -277,6 +281,8 @@ function RoomView({ roomId, secret, session, onSession, shell, prefs, demoMode }
         return;
       }
       updateItem(item.clientMessageId, { status: 'sending', error: undefined });
+      const firstTry = !triedRef.current.has(item.clientMessageId);
+      triedRef.current.add(item.clientMessageId);
       try {
         const message =
           item.kind === 'text'
@@ -284,10 +290,12 @@ function RoomView({ roomId, secret, session, onSession, shell, prefs, demoMode }
                 clientMessageId: item.clientMessageId,
                 text: item.text ?? '',
               })
-            : await sendRoomSpeech(roomId, token, {
-                clientMessageId: item.clientMessageId,
-                audio: item.audio!,
-              });
+            : await sendRoomSpeech(
+                roomId,
+                token,
+                { clientMessageId: item.clientMessageId, audio: item.audio! },
+                firstTry,
+              );
         receive(message);
         attemptsRef.current.delete(item.clientMessageId);
         updateItem(item.clientMessageId, null);
@@ -376,7 +384,12 @@ function RoomView({ roomId, secret, session, onSession, shell, prefs, demoMode }
     },
     [queue],
   );
-  const recorder = useRecorder({ maxMs: MAX_RECORDING_MS, onRecorded });
+  const network = useNetwork();
+  const recorder = useRecorder({
+    maxMs: MAX_RECORDING_MS,
+    onRecorded,
+    audioBitsPerSecond: network.audioBitrate,
+  });
   const recording = recorder.state === 'recording';
 
   const { send } = room;

@@ -177,6 +177,37 @@ input {
   background: var(--red);
 }
 
+.network-signal {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 16px;
+  padding: 0 4px;
+}
+.network-signal .bar {
+  width: 4px;
+  border-radius: 1px;
+  background: var(--line);
+}
+.network-signal .bar-1 {
+  height: 6px;
+}
+.network-signal .bar-2 {
+  height: 11px;
+}
+.network-signal .bar-3 {
+  height: 16px;
+}
+.network-signal.is-good .bar.on {
+  background: var(--teal);
+}
+.network-signal.is-fair .bar.on {
+  background: var(--amber);
+}
+.network-signal.is-poor .bar.on {
+  background: var(--red);
+}
+
 .banner {
   margin: 4px 16px;
   padding: 10px 14px;

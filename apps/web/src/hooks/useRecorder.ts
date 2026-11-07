@@ -20,6 +20,27 @@ function pickMimeType(): string | undefined {
   return PREFERRED_TYPES.find((type) => MediaRecorder.isTypeSupported(type));
 }
 
+/** Some browsers reject options they don't support, so fall back step by step. */
+export function createRecorder(
+  stream: MediaStream,
+  mimeType: string | undefined,
+  audioBitsPerSecond: number | undefined,
+): MediaRecorder {
+  const attempts: MediaRecorderOptions[] = [{ mimeType, audioBitsPerSecond }, { mimeType }, {}];
+  let lastError: unknown;
+  for (const options of attempts) {
+    const clean = Object.fromEntries(
+      Object.entries(options).filter(([, value]) => value !== undefined),
+    ) as MediaRecorderOptions;
+    try {
+      return new MediaRecorder(stream, Object.keys(clean).length ? clean : undefined);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
 export function isRecordingSupported(): boolean {
   return (
     typeof navigator !== 'undefined' &&
@@ -39,9 +60,12 @@ export function isRecordingSupported(): boolean {
 export function useRecorder({
   maxMs,
   onRecorded,
+  audioBitsPerSecond,
 }: {
   maxMs: number;
   onRecorded: (recording: Recording) => void;
+  /** Target encoder bitrate, read when each recording starts. Browsers treat it as a hint. */
+  audioBitsPerSecond?: number;
 }) {
   const [state, setState] = useState<MicState>(() =>
     isRecordingSupported() ? 'off' : 'unsupported',
@@ -59,6 +83,10 @@ export function useRecorder({
   useEffect(() => {
     onRecordedRef.current = onRecorded;
   }, [onRecorded]);
+  const bitrateRef = useRef(audioBitsPerSecond);
+  useEffect(() => {
+    bitrateRef.current = audioBitsPerSecond;
+  }, [audioBitsPerSecond]);
 
   const stopMeter = useCallback(() => {
     cancelAnimationFrame(frameRef.current);
@@ -144,7 +172,7 @@ export function useRecorder({
     if (!stream || recorderRef.current?.state === 'recording') return;
 
     const mimeType = pickMimeType();
-    const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    const recorder = createRecorder(stream, mimeType, bitrateRef.current);
     const chunks: Blob[] = [];
     const startedAt = performance.now();
 

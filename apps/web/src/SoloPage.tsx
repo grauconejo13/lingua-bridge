@@ -8,6 +8,7 @@ import { useAutoplayQueue } from './hooks/useAutoplayQueue';
 import { useHealth } from './hooks/useHealth';
 import { useOnline } from './hooks/useOnline';
 import { usePreferences } from './hooks/usePreferences';
+import { useNetwork } from './hooks/useNetwork';
 import { useRecorder, type Recording } from './hooks/useRecorder';
 import { useSpeechPlayer } from './hooks/useSpeechPlayer';
 import { ApiClientError, sendUtterance } from './lib/api';
@@ -144,7 +145,12 @@ export function SoloPage() {
     [source, target, submit],
   );
 
-  const recorder = useRecorder({ maxMs: MAX_RECORDING_MS, onRecorded });
+  const network = useNetwork();
+  const recorder = useRecorder({
+    maxMs: MAX_RECORDING_MS,
+    onRecorded,
+    audioBitsPerSecond: network.audioBitrate,
+  });
   const autoplay = useAutoplayQueue({
     player: speech,
     blocked: recorder.state === 'recording',
