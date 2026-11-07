@@ -110,7 +110,15 @@ export class RoomService {
     participant.speaking = false;
     room.touch();
 
-    const missed = room.messagesAfter(hello.lastSeq ?? 0);
+    // Everything newer than the client has, plus anything older from the other person that
+    // this participant never acknowledged: an ack lost to a dropped connection would
+    // otherwise leave the sender's message stuck at "Sent". Clients ignore ids they have.
+    const lastSeq = hello.lastSeq ?? 0;
+    const missed = room.messages.filter(
+      (m) =>
+        m.seq > lastSeq ||
+        (m.senderId !== participant.id && !m.deliveredTo.includes(participant.id)),
+    );
     // A failed translation here shouldn't block joining; those messages show the original.
     await Promise.allSettled(missed.map((m) => this.ensureTranslation(m, participant.language)));
 
