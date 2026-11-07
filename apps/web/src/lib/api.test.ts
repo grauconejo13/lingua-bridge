@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ApiClientError, sendUtterance } from './api';
+import { ApiClientError, getHealth, sendUtterance } from './api';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -69,5 +69,18 @@ describe('sendUtterance', () => {
   it('does not offer retry for invalid requests', () => {
     expect(new ApiClientError('UNSUPPORTED_AUDIO', 'nope', 415).retryable).toBe(false);
     expect(new ApiClientError('NO_SPEECH', 'nope', 422).retryable).toBe(false);
+  });
+});
+
+describe('getHealth on a static host', () => {
+  it('explains that no server is connected when the host answers with a page', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () => new Response('<!doctype html>', { headers: { 'content-type': 'text/html' } }),
+      ),
+    );
+    await expect(getHealth()).rejects.toThrow(/isn't connected to a translation server/);
+    vi.unstubAllGlobals();
   });
 });

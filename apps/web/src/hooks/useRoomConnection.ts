@@ -7,6 +7,7 @@ import {
   type RoomMessage,
   type ServerEvent,
 } from '@lingua-bridge/shared';
+import { socketUrl } from '../lib/config';
 import { networkMonitor } from '../lib/network-monitor';
 import { readRoomSession, writeRoomSession } from '../lib/room-session';
 import { initialRoomState, isFatal, roomReducer } from '../lib/room-state';
@@ -24,11 +25,6 @@ const FATAL_CLOSE_CODES: number[] = [
   ROOM_CLOSE.REPLACED,
   ROOM_CLOSE.LEFT,
 ];
-
-function socketUrl(): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}/api/rooms/ws`;
-}
 
 interface Options {
   roomId: string;
@@ -149,7 +145,7 @@ export function useRoomConnection({
     function connect() {
       if (stopped) return;
       window.clearTimeout(retryTimer);
-      const socket = new WebSocket(socketUrl());
+      const socket = new WebSocket(socketUrl('/api/rooms/ws'));
       socketRef.current = socket;
 
       socket.onopen = () => {

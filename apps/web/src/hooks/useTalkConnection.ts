@@ -7,6 +7,7 @@ import {
   type TalkSegment,
   type TalkServerEvent,
 } from '@lingua-bridge/shared';
+import { socketUrl } from '../lib/config';
 import { networkMonitor } from '../lib/network-monitor';
 import { initialTalkState, talkReducer } from '../lib/talk-state';
 
@@ -18,11 +19,6 @@ const FATAL: Record<number, 'TALK_NOT_FOUND' | 'TALK_FULL' | 'FORBIDDEN' | 'ENDE
   [TALK_CLOSE.FORBIDDEN]: 'FORBIDDEN',
   [TALK_CLOSE.ENDED]: 'ENDED',
 };
-
-function socketUrl(): string {
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${protocol}//${window.location.host}/api/talks/ws`;
-}
 
 /**
  * The talk's WebSocket for either role: hello, keepalive pings that also time the round
@@ -93,7 +89,7 @@ export function useTalkConnection({
 
     function connect() {
       if (stopped) return;
-      const socket = new WebSocket(socketUrl());
+      const socket = new WebSocket(socketUrl('/api/talks/ws'));
       socketRef.current = socket;
       let lastHeard = Date.now();
       const ping = () => {

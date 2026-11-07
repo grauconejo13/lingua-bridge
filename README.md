@@ -68,6 +68,10 @@ The key stays on the server. Model names, rate limits and size limits are config
 
 Open `http://localhost:5173/conversation`, start a conversation, and open the link in a second browser profile or private window. Set `MOCK_LATENCY_MS=600` in `.env` to see the waiting states with the demo provider. For two real phones, both need to reach the server over HTTPS (see the note above).
 
+### Hosting the frontend separately (Vercel)
+
+The repo includes a `vercel.json` for the web app. Set `VITE_API_URL` to wherever the API runs and `CORS_ORIGIN` on the API to the frontend's address. Step-by-step instructions are in [Deployment](docs/DEPLOYMENT.md).
+
 ### Production build
 
 ```bash
@@ -142,7 +146,7 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 **Later:** Zoom plugin (needs Zoom developer access and marketplace review), offline-capable experiences where feasible, expanded languages.
 
-See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
+See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), [Deployment](docs/DEPLOYMENT.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
 
 ## Code quality
 

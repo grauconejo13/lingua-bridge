@@ -1,5 +1,6 @@
 import type { CreateTalkResponse, LanguageCode, TalkSegment } from '@lingua-bridge/shared';
 import { request } from './api';
+import { apiUrl } from './config';
 import { networkMonitor } from './network-monitor';
 
 export async function createTalk(body: {
@@ -61,7 +62,9 @@ export async function endTalk(talkId: string, key: string): Promise<void> {
 
 /** Audio for one caption, synthesized once on the server and shared by its language's listeners. */
 export function talkSpeechUrl(talkId: string, segmentId: string, language: LanguageCode): string {
-  return `/api/talks/${encodeURIComponent(talkId)}/segments/${encodeURIComponent(segmentId)}/speech?language=${language}`;
+  return apiUrl(
+    `/api/talks/${encodeURIComponent(talkId)}/segments/${encodeURIComponent(segmentId)}/speech?language=${language}`,
+  );
 }
 
 /** The audience link has no secret: anyone in the room may follow along. */
