@@ -143,6 +143,37 @@ describe('RoomService joining', () => {
     expect(welcome.messages[0]!.translations.ja).toBe('[demo en→ja] Hi');
   });
 
+  it('replays a message whose ack was lost, but not acknowledged or own messages', async () => {
+    const { service, room, alice, bo, b, roomId, secret } = await twoPeople();
+    const token = b.last('welcome')!.resumeToken;
+    const lost = await service.sendText(room, alice.participant, {
+      clientMessageId: 'msg-00010',
+      text: 'Lost ack',
+    });
+    const acked = await service.sendText(room, alice.participant, {
+      clientMessageId: 'msg-00011',
+      text: 'Acked',
+    });
+    service.ack(room, bo.participant, acked.id);
+    const own = await service.sendText(room, bo.participant, {
+      clientMessageId: 'msg-00012',
+      text: 'Mine',
+    });
+    // Bo saw everything (lastSeq is the newest), but the ack for `lost` never arrived.
+    service.disconnect(room, bo.participant, b);
+
+    const b2 = new StubConnection();
+    await service.hello(b2, {
+      type: 'hello',
+      roomId,
+      secret,
+      language: 'ja',
+      resumeToken: token,
+      lastSeq: own.seq,
+    });
+    expect(b2.last('welcome')!.messages.map((m) => m.id)).toEqual([lost.id]);
+  });
+
   it('closes the older tab when the same person connects twice', async () => {
     const { service, b, roomId, secret } = await twoPeople();
     const token = b.last('welcome')!.resumeToken;

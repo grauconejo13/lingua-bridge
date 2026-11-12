@@ -1,6 +1,6 @@
 # Architecture
 
-> The [Milestone 1](#milestone-1-implementation) and [Milestone 2](#milestone-2-implementation-two-person-rooms) sections describe what is built. Everything after them is the proposed longer-term design and has not been implemented.
+> The [Milestone 1](#milestone-1-implementation), [Milestone 2](#milestone-2-implementation-two-person-rooms) and [Phase 3](#phase-3-implementation-measured-network-quality) sections describe what is built. Everything after them is the proposed longer-term design and has not been implemented.
 
 ## Milestone 1 implementation
 
@@ -85,6 +85,24 @@ sequenceDiagram
 **Limits.** Two seats per room, `MAX_ROOMS` rooms per server, rooms swept after `ROOM_IDLE_MINUTES` with nobody connected, 100 messages of history, 500-character typed messages, 16 KB WebSocket frames, and 60 events per 10 seconds per socket. The API rate limit applies to `/api/*` only, so page loads never use it up.
 
 **Scaling note.** Rooms live in one process. Running more than one server instance would need sticky sessions or a shared store (for example Redis pub/sub); that is out of scope until there is a reason.
+
+## Phase 3 implementation: measured network quality
+
+| Piece                   | Where                                          | Notes                                                                 |
+| ----------------------- | ---------------------------------------------- | --------------------------------------------------------------------- |
+| Classifier and bitrates | `packages/shared/src/network.ts`               | Pure functions: tiers, thresholds, Opus bitrate per tier              |
+| Network monitor         | `apps/web/src/lib/network-monitor.ts`          | Rolling medians of RTT (5) and upload (3); samples expire after 2 min |
+| Indicator and banner    | `apps/web/src/components/NetworkSignal.tsx`    | Signal bars with a full text description; banner only on a weak link  |
+| Impaired proxy          | `apps/server/scripts/netsim/impaired-proxy.ts` | Seeded latency, jitter, bandwidth caps, stalls and resets             |
+| Resilience run          | `apps/server/scripts/resilience.ts`            | Two simulated people talking through the proxy                        |
+
+**Measuring.** Pings now carry the client's clock (`{ type: 'ping', t }`) and the server echoes it in the pong, so the round trip is timed without clock sync; the first ping goes out as soon as the socket opens. Audio uploads are timed too, minus the server's reported transcription and translation time. Retries aren't timed, because the server answers a repeated send from memory and its old timings would inflate the estimate. `navigator.connection` labels are used only before any measurement exists.
+
+**Tiers.** _Good_ is ≤ 300 ms RTT and ≥ 96 kbit/s up, _fair_ ≤ 900 ms and ≥ 24 kbit/s, otherwise _poor_ (a tier needs both measures when both exist). Medians keep one slow ping from flipping the tier; a sustained change shows within about three samples.
+
+**Adapting.** The recorder asks for 32, 20 or 12 kbit/s Opus by tier (24 before anything is measured; data saver caps at 20). A 30-second turn shrinks from about 120 KB to 45 KB on a poor link. Browsers treat the bitrate as a hint, and the recorder falls back to defaults if a browser rejects the option.
+
+**Simulating.** A userspace proxy only sees a TCP byte stream, so it models loss by its consequences (stalls while TCP retransmits, and resets on handover), not as dropped packets. OS-level tools such as `tc netem` remain the way to test true packet loss.
 
 ## Proposed long-term components
 

@@ -1,5 +1,6 @@
 import type { CreateRoomResponse, RoomMessage } from '@lingua-bridge/shared';
 import { request } from './api';
+import { networkMonitor } from './network-monitor';
 
 export async function createRoom(): Promise<CreateRoomResponse> {
   return (await request('/api/rooms', { method: 'POST' })).json() as Promise<CreateRoomResponse>;
@@ -22,16 +23,29 @@ export async function sendRoomSpeech(
   roomId: string,
   token: string,
   body: { clientMessageId: string; audio: Blob },
+  /** Time this send for the network monitor. Only first attempts are timed (see below). */
+  measure = true,
 ): Promise<RoomMessage> {
   const form = new FormData();
   form.append('clientMessageId', body.clientMessageId);
   form.append('audio', body.audio, 'utterance');
+  const startedAt = performance.now();
   const response = await request(`/api/rooms/${encodeURIComponent(roomId)}/utterances`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
     body: form,
   });
-  return response.json() as Promise<RoomMessage>;
+  const message = (await response.json()) as RoomMessage;
+  // A retry of a send the server already handled returns the stored message with its old
+  // timings and no new work, which would overstate throughput. Callers pass measure=false.
+  if (measure && message.timings) {
+    networkMonitor.addUpload(
+      body.audio.size,
+      performance.now() - startedAt,
+      message.timings.transcribeMs + message.timings.translateMs,
+    );
+  }
+  return message;
 }
 
 /** Ids for idempotent sends: unique per message, stable across retries. */

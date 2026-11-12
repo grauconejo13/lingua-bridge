@@ -17,6 +17,20 @@ export const ROOM_MAX_PARTICIPANTS = 2;
 export const ROOM_MAX_TEXT_CHARS = 500;
 export const ROOM_MAX_NAME_CHARS = 40;
 
+/**
+ * Client reliability timings. Shared so the web app and the network simulation
+ * (apps/server/scripts/resilience.ts) behave the same way.
+ */
+export const ROOM_CLIENT_TIMING = {
+  /** Reconnect delays in ms; the last value repeats. */
+  reconnectBackoffMs: [500, 1000, 2000, 4000, 8000, 15000],
+  pingEveryMs: 15_000,
+  /** No traffic for this long means the connection is dead even if the browser hasn't noticed. */
+  silenceLimitMs: 35_000,
+  /** Automatic retry delays for a failed send; after these, retries wait for online/reconnect. */
+  sendRetryMs: [1000, 2000, 4000, 8000, 15000],
+} as const;
+
 export interface CreateRoomResponse {
   roomId: string;
   /** Unguessable join secret. Shared via the link's #fragment, which browsers never send to servers. */
@@ -74,7 +88,8 @@ export type ClientEvent =
   | { type: 'speaking'; speaking: boolean }
   | { type: 'language'; language: LanguageCode }
   | { type: 'ack'; messageId: string }
-  | { type: 'ping' }
+  /** `t` is the client's clock in ms; the server echoes it so the client can time the round trip. */
+  | { type: 'ping'; t?: number }
   | { type: 'leave' };
 
 // ---------- WebSocket: server → client ----------
@@ -96,7 +111,7 @@ export type ServerEvent =
   | { type: 'message'; message: RoomMessage }
   | { type: 'delivered'; messageId: string; participantId: string }
   | { type: 'error'; code: RoomErrorCode; message: string }
-  | { type: 'pong' };
+  | { type: 'pong'; t?: number };
 
 /** WebSocket close codes in the application range. */
 export const ROOM_CLOSE = {

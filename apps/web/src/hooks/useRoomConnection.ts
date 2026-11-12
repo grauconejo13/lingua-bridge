@@ -1,19 +1,21 @@
 import { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
+  ROOM_CLIENT_TIMING,
   ROOM_CLOSE,
   type ClientEvent,
   type LanguageCode,
   type RoomMessage,
   type ServerEvent,
 } from '@lingua-bridge/shared';
+import { networkMonitor } from '../lib/network-monitor';
 import { readRoomSession, writeRoomSession } from '../lib/room-session';
 import { initialRoomState, isFatal, roomReducer } from '../lib/room-state';
 
-/** Reconnect delays in ms; the last value repeats. */
-const BACKOFF = [500, 1000, 2000, 4000, 8000, 15000];
-const PING_EVERY_MS = 15_000;
-/** No traffic for this long means the connection is dead even if the browser hasn't noticed. */
-const SILENCE_LIMIT_MS = 35_000;
+const {
+  reconnectBackoffMs: BACKOFF,
+  pingEveryMs: PING_EVERY_MS,
+  silenceLimitMs: SILENCE_LIMIT_MS,
+} = ROOM_CLIENT_TIMING;
 
 const FATAL_CLOSE_CODES: number[] = [
   ROOM_CLOSE.ROOM_NOT_FOUND,
@@ -95,7 +97,16 @@ export function useRoomConnection({
       }
     };
 
+    const ping = (socket: WebSocket) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'ping', t: performance.now() } satisfies ClientEvent));
+      }
+    };
+
     const handle = (event: ServerEvent) => {
+      if (event.type === 'pong' && event.t !== undefined) {
+        networkMonitor.addRtt(performance.now() - event.t);
+      }
       if (event.type === 'welcome') {
         participantIdRef.current = event.participantId;
         attempt = 0;
@@ -161,8 +172,10 @@ export function useRoomConnection({
             socket.close(3000, 'silent');
             return;
           }
-          if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: 'ping' }));
+          ping(socket);
         }, PING_EVERY_MS);
+        // A first round trip right away, so the network picture doesn't wait 15 seconds.
+        ping(socket);
       };
 
       socket.onmessage = (message) => {

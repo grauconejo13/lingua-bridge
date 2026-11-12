@@ -230,7 +230,9 @@ describe('rooms over HTTP and WebSocket', () => {
     client.socket.send('not json');
     expect((await client.next('error')).code).toBe('BAD_MESSAGE');
     client.send({ type: 'ping' });
-    await client.next('pong');
+    expect((await client.next('pong')).t).toBeUndefined();
+    client.send({ type: 'ping', t: 1234.5 });
+    expect((await client.next('pong', (e) => e.t !== undefined)).t).toBe(1234.5);
   });
 
   it('returns 404 for messages to a room that no longer exists', async () => {
