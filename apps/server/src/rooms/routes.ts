@@ -1,4 +1,3 @@
-import websocket from '@fastify/websocket';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { WebSocket } from 'ws';
 import { z } from 'zod';
@@ -75,10 +74,6 @@ export async function registerRooms(
   const sweeper = setInterval(() => store.sweep(), 60_000);
   sweeper.unref();
   app.addHook('onClose', async () => clearInterval(sweeper));
-
-  await app.register(websocket, {
-    options: { maxPayload: 16 * 1024 },
-  });
 
   app.post('/api/rooms', async (): Promise<CreateRoomResponse> => {
     const created = store.create();

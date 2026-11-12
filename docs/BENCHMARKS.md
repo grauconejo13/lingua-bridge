@@ -88,3 +88,16 @@ The `worst` profile was also run with seeds 2 and 3: 20/20 received and 20 recei
 **Bug found by this harness.** The first run of `worst` lost one receipt: Bo received a message, then the connection dropped before Bo's acknowledgement reached the server. Resuming replayed only messages newer than Bo's last seq, so the acknowledgement was never re-sent and Alice's message stayed at "Sent". The server now also replays the other person's messages that this participant hasn't acknowledged (`RoomService.hello`, covered by a unit test), and the client acknowledges them on arrival.
 
 **Reading the results.** Delivery held up in every profile. Stalls are where people will notice: a freeze holds messages until it ends, so the slowest messages wait out the freeze (the 4.9 s p95). Note that the stall profile still classifies as _good_, because round trips between freezes are fast; the tier describes the link's speed, not its reliability.
+
+## Presentations: audience fan-out
+
+`npm run talk-load` starts the server in-process with the demo provider (150 ms simulated translation), connects one presenter and N listeners spread evenly across the presenter's language and L others, sends 20 typed captions 1.5 s apart, and times each caption from send to each listener. It also counts translation calls. Clients and server share one machine, so this measures the server's fan-out, not real networks or translation quality.
+
+| Date       | Listeners | Languages | Delivered       | Median | p95    | Max    | Original-language median | Translation calls |
+| ---------- | --------- | --------- | --------------- | ------ | ------ | ------ | ------------------------ | ----------------- |
+| 2026-11-07 | 300       | 1 + 6     | 6,000 / 6,000   | 159 ms | 165 ms | 172 ms | 3 ms                     | 120 (20 × 6)      |
+| 2026-11-07 | 1,000     | 1 + 6     | 20,000 / 20,000 | 171 ms | 183 ms | 189 ms | 5 ms                     | 120 (20 × 6)      |
+
+Subtracting the simulated 150 ms translation, server overhead was about 10 ms at 300 listeners and 20 ms at 1,000, and the number of translation calls didn't change with audience size.
+
+A browser run with a synthetic speech file as the presenter's microphone and three listeners (Spanish, Japanese, Arabic) delivered every pause-cut caption to all three in their language, kept Arabic right to left, and left captions on screen after the presenter ended the talk. Real-microphone and real-room tests are still to do.

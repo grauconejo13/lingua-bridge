@@ -26,6 +26,10 @@ const EnvSchema = z
     MAX_TTS_CHARS: z.coerce.number().int().positive().default(800),
     MAX_ROOMS: z.coerce.number().int().positive().default(100),
     ROOM_IDLE_MINUTES: z.coerce.number().positive().default(30),
+    MAX_TALKS: z.coerce.number().int().positive().default(20),
+    TALK_IDLE_MINUTES: z.coerce.number().positive().default(60),
+    TALK_MAX_LISTENERS: z.coerce.number().int().positive().default(300),
+    TALK_MAX_LANGUAGES: z.coerce.number().int().min(1).max(20).default(6),
     MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(0),
     CORS_ORIGIN: z.string().optional(),
   })
@@ -53,6 +57,7 @@ export interface AppConfig {
   maxAudioBytes: number;
   maxTtsChars: number;
   rooms: { maxRooms: number; idleMs: number };
+  talks: { maxTalks: number; idleMs: number; maxListeners: number; maxLanguages: number };
   /** Artificial delay for the mock provider, to make demos and tests feel realistic. */
   mockLatencyMs: number;
   corsOrigin: string | undefined;
@@ -86,6 +91,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, webDistDir?: st
     maxAudioBytes: e.MAX_AUDIO_BYTES,
     maxTtsChars: e.MAX_TTS_CHARS,
     rooms: { maxRooms: e.MAX_ROOMS, idleMs: e.ROOM_IDLE_MINUTES * 60_000 },
+    talks: {
+      maxTalks: e.MAX_TALKS,
+      idleMs: e.TALK_IDLE_MINUTES * 60_000,
+      maxListeners: e.TALK_MAX_LISTENERS,
+      maxLanguages: e.TALK_MAX_LANGUAGES,
+    },
     mockLatencyMs: e.MOCK_LATENCY_MS,
     corsOrigin: e.CORS_ORIGIN || undefined,
     webDistDir,

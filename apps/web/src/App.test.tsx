@@ -39,6 +39,12 @@ describe('routing', () => {
     expect(screen.getByRole('button', { name: 'Start conversation' })).toBeInTheDocument();
   });
 
+  it('shows the presentation start screen at /present', () => {
+    go('/present');
+    render(<App />);
+    expect(screen.getByRole('button', { name: 'Create presentation' })).toBeInTheDocument();
+  });
+
   it('explains a room link without its secret', () => {
     go('/r/abc123');
     render(<App />);

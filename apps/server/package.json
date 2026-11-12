@@ -10,7 +10,8 @@
     "start": "node dist/index.js",
     "typecheck": "tsc -p tsconfig.json",
     "bench": "tsx scripts/bench.ts",
-    "resilience": "tsx scripts/resilience.ts"
+    "resilience": "tsx scripts/resilience.ts",
+    "talk-load": "tsx scripts/talk-load.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.2.0",

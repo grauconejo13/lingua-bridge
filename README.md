@@ -4,9 +4,18 @@
 
 Lingua Bridge is an accessibility-minded multilingual communication platform. It aims to help people communicate across language barriers and unreliable network connections, using familiar devices rather than specialized hardware.
 
-> **Status: Milestone 2 prototype, Phase 3 underway.** Two modes in the browser: a one-device translator, and two-device conversations where each person speaks their own language on their own phone. Both run end to end with a keyless **demo provider** (placeholder text, clearly labeled), and an **OpenAI adapter** handles real transcription, translation and speech. Live latency and translation quality have not been measured with a real provider yet, so no performance claims are made. The app now measures its own connection and adapts audio quality to it; reliability under simulated bad networks is measured (see [Benchmarks](docs/BENCHMARKS.md#network-resilience-simulated)). Zoom integration is not built.
+> **Status: Milestone 3 prototype.** Three modes in the browser: a one-device translator, two-device conversations where each person speaks their own language on their own phone, and presentations where a whole audience reads live captions in their own languages. Both run end to end with a keyless **demo provider** (placeholder text, clearly labeled), and an **OpenAI adapter** handles real transcription, translation and speech. Live latency and translation quality have not been measured with a real provider yet, so no performance claims are made. The app now measures its own connection and adapts audio quality to it; reliability under simulated bad networks is measured (see [Benchmarks](docs/BENCHMARKS.md#network-resilience-simulated)). Zoom integration is not built.
 
 ## What works today
+
+**Presentations** (`/present`)
+
+- The presenter picks a language and gets a QR code to put on screen (there's a full-screen version for projecting). Listeners scan it, choose their language, and read live captions on their own phones. No accounts, and audience links are listen-only.
+- The presenter just talks. The microphone stays on and each natural pause becomes a caption, so there's no tapping per sentence. Silence is never uploaded, and the voice threshold adapts to a noisy room. The presenter can also type a line, such as a name or a correction.
+- Each caption is transcribed once and translated once per language in use, never per listener, so a bigger audience doesn't cost more. Translation is capped at 6 languages per talk (configurable); anyone past the cap reads the original and is told why.
+- Listeners can show the original under each caption, jump back to the latest after scrolling up, and listen to captions read aloud. That audio is also made once per caption and language and shared by every listener.
+- The presenter sees how many people follow in which language. Captions send in order and retry on their own if the connection drops; listeners catch up on reconnect. When the talk ends, listeners keep the captions on screen.
+- Tested with 1,000 simulated listeners in 7 languages: every caption delivered, with about 20 ms of server overhead (see [Benchmarks](docs/BENCHMARKS.md#presentations-audience-fan-out)).
 
 **Two-device conversations** (`/conversation`)
 
@@ -59,6 +68,10 @@ The key stays on the server. Model names, rate limits and size limits are config
 
 Open `http://localhost:5173/conversation`, start a conversation, and open the link in a second browser profile or private window. Set `MOCK_LATENCY_MS=600` in `.env` to see the waiting states with the demo provider. For two real phones, both need to reach the server over HTTPS (see the note above).
 
+### Hosting the frontend separately (Vercel)
+
+The repo includes a `vercel.json` for the web app. Set `VITE_API_URL` to wherever the API runs and `CORS_ORIGIN` on the API to the frontend's address. Step-by-step instructions are in [Deployment](docs/DEPLOYMENT.md).
+
 ### Production build
 
 ```bash
@@ -76,6 +89,14 @@ npm run bench -- --to <language-code> --runs 10
 
 It synthesizes test phrases, sends them back through the pipeline, and reports median and p95 timings. See [Benchmarks](docs/BENCHMARKS.md) for the method and targets.
 
+### Trying a presentation
+
+Open `http://localhost:5173/present`, create a presentation, and open the audience link in another browser or on a phone (over HTTPS, as above). Two load tests run without a server:
+
+```bash
+npm run talk-load -- --listeners 300 --languages 6   # audience fan-out
+```
+
 ### Network resilience simulation
 
 No server needed:
@@ -90,9 +111,9 @@ Two simulated people talk through a proxy that adds latency, bandwidth limits, f
 ## Project layout
 
 ```
-apps/web         React + TypeScript + Vite client (solo translator and conversation screens)
-apps/server      Fastify API: provider credentials, orchestration, rooms, limits
-packages/shared  Language registry, API types and the room protocol
+apps/web         React + TypeScript + Vite client (solo translator, conversation and presentation screens)
+apps/server      Fastify API: provider credentials, orchestration, rooms, talks, limits
+packages/shared  Language registry, API types, and the room and talk protocols
 docs/            Vision, architecture, roadmap, decisions, benchmarks
 ```
 
@@ -119,11 +140,13 @@ The core service should be useful on laptops and smartphones. Cameras, smart gla
 
 **Phase 3 (in progress):** measured network quality, adaptive audio bitrate and a reproducible bad-network simulation are built. Still to do: queued sends that survive closing the tab, and real-device tests on throttled networks.
 
-**Next:** measure accuracy, latency and cost with a real provider on two physical devices.
+**Milestone 3 (built):** presentations to many listeners via a QR code, with pause-based captioning and per-language translation.
 
-**Later:** conference mode, Zoom plugin, offline-capable experiences where feasible, expanded languages.
+**Next:** measure accuracy, latency and cost with a real provider on physical devices, and deploy a public demo.
 
-See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
+**Later:** Zoom plugin (needs Zoom developer access and marketplace review), offline-capable experiences where feasible, expanded languages.
+
+See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Decisions & Risks](docs/DECISIONS.md), [Benchmarks](docs/BENCHMARKS.md), [Deployment](docs/DEPLOYMENT.md), and [Public/Private Repository Strategy](docs/REPOSITORY_STRATEGY.md).
 
 ## Code quality
 
@@ -145,6 +168,7 @@ See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Arc
 - Each recording is sent once to the server, passed to the provider, and discarded. The server never writes audio or transcripts to disk or logs; logs contain language codes, sizes and timings only.
 - One-device captions live in the browser tab's memory and disappear when the tab closes. Only preferences (languages, caption size, autoplay) are saved locally.
 - In a conversation, the server keeps the room's recent messages (text only, up to 100) in memory so a reconnecting person can catch up. They are gone when the room ends after 30 idle minutes or the server restarts. Each device stores only its seat token for that room, which expires after 12 hours.
+- In a presentation, the server keeps up to 200 recent captions (text only) in memory so late joiners can catch up, plus spoken versions of recent captions. All of it is gone when the talk ends after 60 idle minutes or the server restarts. Listeners store only their preferred language.
 - Anyone with a conversation link can join while a seat is free, so share it only with the person you're talking to.
 - With `PROVIDER=openai`, audio and text are processed by OpenAI under its API terms.
 
@@ -159,6 +183,7 @@ See [Product Vision](docs/PRODUCT_VISION.md), [Features](docs/FEATURES.md), [Arc
 - [ ] Two physical devices over different networks
 - [x] Network resilience testing under simulated throttling, freezes and drops
 - [x] Adaptive audio bitrate from measured connection quality
+- [x] Presentations: QR join, pause-based captions, per-language translation, audience load test
 - [ ] Resilience testing on real devices and throttled networks
 - [ ] Deployment and public demo
 

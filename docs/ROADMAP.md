@@ -21,7 +21,7 @@
 
 **Gate:** Can someone demonstrate a translation with transparent permissions that meets the [Milestone 1 targets](BENCHMARKS.md#targets-for-the-milestone-1-gate): median stop-to-caption ≤ 1.5 s, p95 ≤ 3 s, adequacy ≥ 4/5?
 
-## Phase 2: Two-person conversation (current)
+## Phase 2: Two-person conversation
 
 - [x] Joinable rooms with language preferences per listener.
 - [x] Bidirectional audio/text delivery and interruption handling.
@@ -44,7 +44,7 @@
 
 - [ ] Evaluate Zoom Apps SDK and RTMS access plus permissible audio playback.
 - [ ] Prototype meeting-caption overlay or companion audio experience.
-- [ ] Explore presenter-to-many QR-room conference flow.
+- [x] Presenter-to-many QR-room conference flow (Milestone 3: pause-based captions, per-language translation with a cap, shared caption audio, 1,000-listener load test).
 - [ ] Add languages based on evidence and testing.
 
 ## Phase 5: Product readiness (optional)
