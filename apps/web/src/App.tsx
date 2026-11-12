@@ -1,3 +1,4 @@
+import { AdminPage } from './AdminPage';
 import { AudiencePage } from './AudiencePage';
 import { CreateRoomPage } from './CreateRoomPage';
 import { CreateTalkPage } from './CreateTalkPage';
@@ -13,6 +14,7 @@ import { SoloPage } from './SoloPage';
  *   /present       start a presentation (Milestone 3)
  *   /present/:id   the presenter's controls (the presenter key is in the #fragment)
  *   /t/:id         follow a presentation as a listener
+ *   /admin         operator status and pause switch (needs ADMIN_TOKEN)
  */
 export function App() {
   const path = window.location.pathname;
@@ -21,6 +23,7 @@ export function App() {
     return <RoomPage roomId={room[1]} secret={window.location.hash.slice(1)} />;
   }
   if (path === '/conversation' || path === '/conversation/') return <CreateRoomPage />;
+  if (path === '/admin' || path === '/admin/') return <AdminPage />;
   const presenter = /^\/present\/([A-Za-z0-9_-]{1,64})\/?$/.exec(path);
   if (presenter?.[1]) {
     return <PresenterPage talkId={presenter[1]} presenterKey={window.location.hash.slice(1)} />;

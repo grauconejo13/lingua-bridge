@@ -49,7 +49,8 @@
 
 ## Phase 5: Product readiness (optional)
 
-- [ ] Accessibility and privacy reviews, observability and operational limits.
+- [x] Accessibility review (axe in CI and a real browser, keyboard and focus checks), observability (aggregate usage and latency, no content) and operational limits (daily spending cap, pause switch). See [Accessibility](ACCESSIBILITY.md) and [Deployment](DEPLOYMENT.md).
+- [ ] Privacy review by someone other than the author, and real screen-reader testing.
 - [ ] Pricing experiments informed by per-minute AI costs.
 - [ ] Free usage policies and mission-driven access partnerships.
 - [ ] Public pilot and feedback.

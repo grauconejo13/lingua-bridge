@@ -81,3 +81,24 @@ describe('routing', () => {
     expect(screen.getByText('Waiting for the other person')).toBeInTheDocument();
   });
 });
+
+describe('availability banner', () => {
+  it('tells visitors when the daily limit is reached', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        Response.json({
+          status: 'ok',
+          provider: 'openai',
+          demoMode: false,
+          limits: { maxAudioBytes: 1, maxTtsChars: 1 },
+          available: false,
+          unavailableReason: 'budget',
+        }),
+      ),
+    );
+    go('/');
+    render(<App />);
+    expect(await screen.findByText(/reached its translation limit for today/)).toBeInTheDocument();
+  });
+});

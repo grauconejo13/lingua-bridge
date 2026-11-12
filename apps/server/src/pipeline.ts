@@ -8,6 +8,7 @@ export interface UtteranceInput {
   mimeType: string;
   sourceLanguage: LanguageCode;
   targetLanguage: LanguageCode;
+  durationMs?: number;
 }
 
 /**
@@ -28,6 +29,7 @@ export async function translateUtterance(
   const { text: sourceText } = await provider.transcribe({
     audio: input.audio,
     mimeType: input.mimeType,
+    durationMs: input.durationMs,
     language: from,
   });
   const transcribeMs = Math.round(now() - started);

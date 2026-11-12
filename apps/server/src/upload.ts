@@ -6,6 +6,8 @@ export interface AudioUpload {
   fields: Record<string, string>;
   audio: Buffer;
   mimeType: string;
+  /** Client-reported recording length, used only to estimate cost. Untrusted; clamped later. */
+  durationMs?: number;
 }
 
 /**
@@ -44,5 +46,11 @@ export async function readAudioUpload(request: FastifyRequest): Promise<AudioUpl
   if (!audio || audio.byteLength === 0) {
     throw new AppError('BAD_REQUEST', 'Missing audio recording.', 400);
   }
-  return { fields, audio, mimeType };
+  const duration = Number(fields.durationMs);
+  return {
+    fields,
+    audio,
+    mimeType,
+    durationMs: Number.isFinite(duration) && duration > 0 ? duration : undefined,
+  };
 }

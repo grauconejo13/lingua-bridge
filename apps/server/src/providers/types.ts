@@ -4,6 +4,8 @@ export interface TranscribeInput {
   audio: Buffer;
   mimeType: string;
   language: Language;
+  /** Recording length reported by the client, for cost estimates only. */
+  durationMs?: number;
 }
 
 export interface TranslateInput {

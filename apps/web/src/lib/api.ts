@@ -8,6 +8,7 @@ import type {
   UtteranceResponse,
 } from '@lingua-bridge/shared';
 import { apiUrl, usesSeparateApi } from './config';
+import { appendDuration } from './recording-durations';
 import { networkMonitor } from './network-monitor';
 
 /** A failed API call, with a message that is safe to show. */
@@ -90,6 +91,7 @@ export async function sendUtterance(
   form.append('sourceLanguage', input.sourceLanguage);
   form.append('targetLanguage', input.targetLanguage);
   form.append('audio', input.audio, 'utterance');
+  appendDuration(form, input.audio);
   const startedAt = performance.now();
   const response = await request('/api/utterances', { method: 'POST', body: form, signal });
   const result = (await response.json()) as UtteranceResponse;

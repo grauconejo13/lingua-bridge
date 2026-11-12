@@ -233,7 +233,7 @@ export class RoomService {
   sendSpeech(
     room: Room,
     participant: ParticipantRecord,
-    input: { clientMessageId: string; audio: Buffer; mimeType: string },
+    input: { clientMessageId: string; audio: Buffer; mimeType: string; durationMs?: number },
   ): Promise<RoomMessage> {
     return this.once(room, participant, input.clientMessageId, async () => {
       const sourceLanguage = participant.language;
@@ -241,6 +241,7 @@ export class RoomService {
       const { text } = await this.provider.transcribe({
         audio: input.audio,
         mimeType: input.mimeType,
+        durationMs: input.durationMs,
         language: getLanguage(sourceLanguage),
       });
       const transcribeMs = Math.round(performance.now() - started);

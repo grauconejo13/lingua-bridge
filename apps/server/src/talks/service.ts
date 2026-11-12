@@ -203,7 +203,7 @@ export class TalkService {
 
   async addSpeech(
     talk: Talk,
-    input: { clientSegmentId: string; audio: Buffer; mimeType: string },
+    input: { clientSegmentId: string; audio: Buffer; mimeType: string; durationMs?: number },
   ): Promise<TalkSegment & { transcribeMs?: number }> {
     let transcribeMs: number | undefined;
     const segment = await this.once(talk, input.clientSegmentId, async () => {
@@ -211,6 +211,7 @@ export class TalkService {
       const { text } = await this.provider.transcribe({
         audio: input.audio,
         mimeType: input.mimeType,
+        durationMs: input.durationMs,
         language: getLanguage(talk.language),
       });
       transcribeMs = Math.round(performance.now() - started);

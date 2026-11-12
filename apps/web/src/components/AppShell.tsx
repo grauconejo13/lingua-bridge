@@ -3,6 +3,7 @@ import type { HealthState } from '../hooks/useHealth';
 import { useNetwork } from '../hooks/useNetwork';
 import type { TextSize } from '../types';
 import { NetworkSignal, WeakNetworkBanner } from './NetworkSignal';
+import { Notices } from './Notices';
 import { SettingsMenu } from './SettingsMenu';
 
 interface Props {
@@ -74,26 +75,35 @@ export function AppShell({
         </div>
       </header>
 
-      {demoMode && (
-        <p className="banner demo" role="note">
-          <strong>Demo mode.</strong> The server is using placeholder text, not real translation.
-          Set <code>PROVIDER=openai</code> to translate your actual speech.
-        </p>
-      )}
-      {health.status === 'error' && (
-        <p className="banner error" role="alert">
-          {health.message}{' '}
-          <button type="button" className="link-button" onClick={onCheckHealth}>
-            Try again
-          </button>
-        </p>
-      )}
-      {online && <WeakNetworkBanner network={network} />}
-      {!online && (
-        <p className="banner warning" role="alert">
-          {offlineMessage}
-        </p>
-      )}
+      <Notices label="Server status">
+        {demoMode && (
+          <p className="banner demo" role="note">
+            <strong>Demo mode.</strong> The server is using placeholder text, not real translation.
+            Set <code>PROVIDER=openai</code> to translate your actual speech.
+          </p>
+        )}
+        {health.status === 'ok' && health.health.available === false && (
+          <p className="banner warning" role="status">
+            {health.health.unavailableReason === 'paused'
+              ? 'Translation is paused on this server right now. You can look around, but new translations will wait until it resumes.'
+              : 'This demo has reached its translation limit for today. It resets at midnight UTC.'}
+          </p>
+        )}
+        {health.status === 'error' && (
+          <p className="banner error" role="alert">
+            {health.message}{' '}
+            <button type="button" className="link-button" onClick={onCheckHealth}>
+              Try again
+            </button>
+          </p>
+        )}
+        {online && network.quality === 'poor' && <WeakNetworkBanner network={network} />}
+        {!online && (
+          <p className="banner warning" role="alert">
+            {offlineMessage}
+          </p>
+        )}
+      </Notices>
 
       {children}
     </div>

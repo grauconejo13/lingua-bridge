@@ -11,6 +11,7 @@ import {
 } from '@lingua-bridge/shared';
 import { AppShell } from './components/AppShell';
 import { Composer } from './components/Composer';
+import { Notices } from './components/Notices';
 import {
   IncomingBubble,
   OutgoingBubble,
@@ -493,16 +494,18 @@ function RoomView({ roomId, secret, session, onSession, shell, prefs, demoMode }
         </div>
       </section>
 
-      {state.status === 'reconnecting' && (
-        <p className="banner warning" role="status">
-          Reconnecting… Anything you send will go through once the connection is back.
-        </p>
-      )}
-      {state.status === 'connecting' && (
-        <p className="banner" role="status">
-          Connecting…
-        </p>
-      )}
+      <Notices label="Conversation status">
+        {state.status === 'reconnecting' && (
+          <p className="banner warning" role="status">
+            Reconnecting… Anything you send will go through once the connection is back.
+          </p>
+        )}
+        {state.status === 'connecting' && (
+          <p className="banner" role="status">
+            Connecting…
+          </p>
+        )}
+      </Notices>
 
       <main className="feed" aria-label="Conversation">
         {(waitingForPartner || showInvite) && <SharePanel link={link} />}

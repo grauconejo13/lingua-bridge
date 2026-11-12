@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { rememberDuration } from '../lib/recording-durations';
 
 export type MicState =
   'off' | 'requesting' | 'ready' | 'recording' | 'denied' | 'unsupported' | 'error';
@@ -186,9 +187,10 @@ export function useRecorder({
       setElapsedMs(0);
       setState(streamRef.current ? 'ready' : 'off');
       const type = recorder.mimeType || mimeType || 'audio/webm';
+      const durationMs = Math.round(performance.now() - startedAt);
       onRecordedRef.current({
-        blob: new Blob(chunks, { type }),
-        durationMs: Math.round(performance.now() - startedAt),
+        blob: rememberDuration(new Blob(chunks, { type }), durationMs),
+        durationMs,
       });
     };
 

@@ -12,6 +12,45 @@ export interface HealthResponse {
     maxAudioBytes: number;
     maxTtsChars: number;
   };
+  /** False when the operator paused translation or today's budget is spent. */
+  available: boolean;
+  unavailableReason?: 'paused' | 'budget';
+}
+
+export type ProviderOperation = 'transcribe' | 'translate' | 'synthesize';
+
+export interface OperationUsage {
+  calls: number;
+  errors: number;
+  /** Calls refused because of the budget or the pause switch. */
+  refused: number;
+  /** Minutes for transcription; characters for translation and speech. */
+  units: number;
+  /** Estimated from configured prices, not a bill. */
+  costUsd: number;
+  p50Ms?: number;
+  p95Ms?: number;
+}
+
+/** Aggregate provider usage for the current UTC day. Contains no text, audio or identifiers. */
+export interface UsageSnapshot {
+  day: string;
+  costUsd: number;
+  /** 0 means no cap. */
+  budgetUsd: number;
+  paused: boolean;
+  available: boolean;
+  unavailableReason?: 'paused' | 'budget';
+  operations: Record<ProviderOperation, OperationUsage>;
+}
+
+/** GET /api/admin/status (Authorization: Bearer <ADMIN_TOKEN>). */
+export interface AdminStatus {
+  usage: UsageSnapshot;
+  live: { rooms: number; talks: number; listeners: number };
+  uptimeSeconds: number;
+  provider: ProviderId;
+  demoMode: boolean;
 }
 
 export interface LanguagesResponse {

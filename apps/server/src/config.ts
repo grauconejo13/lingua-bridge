@@ -30,6 +30,16 @@ const EnvSchema = z
     TALK_IDLE_MINUTES: z.coerce.number().positive().default(60),
     TALK_MAX_LISTENERS: z.coerce.number().int().positive().default(300),
     TALK_MAX_LANGUAGES: z.coerce.number().int().min(1).max(20).default(6),
+    DAILY_BUDGET_USD: z.coerce.number().min(0).default(5),
+    PRICE_TRANSCRIBE_PER_MINUTE: z.coerce.number().min(0).default(0.003),
+    PRICE_TRANSLATE_INPUT_PER_MILLION_TOKENS: z.coerce.number().min(0).default(0.15),
+    PRICE_TRANSLATE_OUTPUT_PER_MILLION_TOKENS: z.coerce.number().min(0).default(0.6),
+    PRICE_TTS_PER_1K_CHARS: z.coerce.number().min(0).default(0.017),
+    USAGE_FILE: z.string().optional(),
+    ADMIN_TOKEN: z
+      .string()
+      .optional()
+      .refine((t) => !t || t.length >= 24, 'ADMIN_TOKEN must be at least 24 characters'),
     MOCK_LATENCY_MS: z.coerce.number().int().min(0).max(10_000).default(0),
     CORS_ORIGIN: z.string().optional(),
   })
@@ -58,6 +68,18 @@ export interface AppConfig {
   maxTtsChars: number;
   rooms: { maxRooms: number; idleMs: number };
   talks: { maxTalks: number; idleMs: number; maxListeners: number; maxLanguages: number };
+  usage: {
+    budgetUsd: number;
+    prices: {
+      transcribePerMinute: number;
+      translateInputPerMillion: number;
+      translateOutputPerMillion: number;
+      synthesizePer1kChars: number;
+    };
+    file: string | undefined;
+  };
+  /** Enables /api/admin when set. */
+  adminToken: string | undefined;
   /** Artificial delay for the mock provider, to make demos and tests feel realistic. */
   mockLatencyMs: number;
   corsOrigin: string | undefined;
@@ -97,6 +119,17 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, webDistDir?: st
       maxListeners: e.TALK_MAX_LISTENERS,
       maxLanguages: e.TALK_MAX_LANGUAGES,
     },
+    usage: {
+      budgetUsd: e.DAILY_BUDGET_USD,
+      prices: {
+        transcribePerMinute: e.PRICE_TRANSCRIBE_PER_MINUTE,
+        translateInputPerMillion: e.PRICE_TRANSLATE_INPUT_PER_MILLION_TOKENS,
+        translateOutputPerMillion: e.PRICE_TRANSLATE_OUTPUT_PER_MILLION_TOKENS,
+        synthesizePer1kChars: e.PRICE_TTS_PER_1K_CHARS,
+      },
+      file: e.USAGE_FILE || undefined,
+    },
+    adminToken: e.ADMIN_TOKEN || undefined,
     mockLatencyMs: e.MOCK_LATENCY_MS,
     corsOrigin: e.CORS_ORIGIN || undefined,
     webDistDir,

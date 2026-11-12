@@ -145,6 +145,10 @@ sequenceDiagram
 
 **Pause detection.** The segmenter cuts after 700 ms of quiet once a segment holds at least 400 ms of voice, after a 250 ms pause past 10 s, and always at 15 s. Silent stretches are thrown away rather than uploaded. Its noise floor is the quietest level of the last 3 s, rising slowly and capped, because speech has gaps between words and a fan or projector doesn't. Background tabs slow browser timers to about once a second, so pause detection gets coarser there; recording itself continues.
 
+## Milestone 4: cost controls and operations
+
+Every provider call goes through `MeteredProvider` (`apps/server/src/usage`), which wraps whichever provider is configured. Before each call it asks `UsageMeter` whether paid work is allowed (not paused, today's estimated spend under `DAILY_BUDGET_USD`); after it, it records the call, its latency and its estimated cost. Transcription is estimated from the recording length the client reports (clamped to one minute per recording, or estimated from the file size when absent), and translation and speech from character counts. Spend and the pause switch can persist to `USAGE_FILE` so a restart doesn't reset the budget. `/api/health` reports availability so screens can explain a pause or a spent budget before anyone tries, and `/api/admin` (only when `ADMIN_TOKEN` is set) serves aggregate counts and the switch. Nothing in the meter holds text, audio or identifiers.
+
 ## Proposed long-term components
 
 **Client:** React + TypeScript + Vite as a mobile-friendly web application. Request microphone permission explicitly. Maintain language selection, audio controls, consent UI, caption state, connection status, and safe retry queue.

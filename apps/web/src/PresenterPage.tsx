@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties } from 're
 import { getLanguage, languageLabel, type LanguageCode } from '@lingua-bridge/shared';
 import { AppShell } from './components/AppShell';
 import { Composer } from './components/Composer';
+import { Notices } from './components/Notices';
 import { SharePanel } from './components/SharePanel';
 import { useHealth } from './hooks/useHealth';
 import { useNetwork } from './hooks/useNetwork';
@@ -174,11 +175,13 @@ export function PresenterPage({ talkId, presenterKey }: { talkId: string; presen
         )}
       </section>
 
-      {state.status === 'reconnecting' && (
-        <p className="banner warning" role="status">
-          Reconnecting… Keep talking. Captions are queued and sent in order once you're back.
-        </p>
-      )}
+      <Notices label="Presentation status">
+        {state.status === 'reconnecting' && (
+          <p className="banner warning" role="status">
+            Reconnecting… Keep talking. Captions are queued and sent in order once you're back.
+          </p>
+        )}
+      </Notices>
 
       <main className="feed" aria-label="Your captions">
         <SharePanel

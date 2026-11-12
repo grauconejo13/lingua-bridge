@@ -1,5 +1,6 @@
 import type { CreateRoomResponse, RoomMessage } from '@lingua-bridge/shared';
 import { request } from './api';
+import { appendDuration } from './recording-durations';
 import { networkMonitor } from './network-monitor';
 
 export async function createRoom(): Promise<CreateRoomResponse> {
@@ -29,6 +30,7 @@ export async function sendRoomSpeech(
   const form = new FormData();
   form.append('clientMessageId', body.clientMessageId);
   form.append('audio', body.audio, 'utterance');
+  appendDuration(form, body.audio);
   const startedAt = performance.now();
   const response = await request(`/api/rooms/${encodeURIComponent(roomId)}/utterances`, {
     method: 'POST',
