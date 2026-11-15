@@ -43,6 +43,55 @@ Phrases currently exist for English as the source (`--from en`, the default); ad
 4. Repeat with Chrome DevTools network throttling set to "Fast 4G" and "Slow 4G".
 5. Have a fluent speaker of the target language score each translation with the rubric.
 
+### Two-device reconnect test sheet
+
+Use this alongside the Phase 2 gate in the [Roadmap](ROADMAP.md#phase-2-two-person-conversation-current).
+This is a manual procedure, not a completed test result.
+
+Before starting, record:
+
+- Date, commit SHA and tester initials.
+- Device A and B: operating system, browser version and connection (Wi-Fi or cellular).
+- Provider and model names; use the demo provider first to check delivery without provider charges.
+- Source and target languages on each device.
+- Network impairment method and settings. Desktop DevTools throttling does not automatically throttle
+  a separate phone; record which device and traffic were actually affected.
+
+Keep both tabs open and in the foreground throughout the reconnect test:
+
+1. Open `/conversation` on device A and join from device B using the shared link.
+2. Set different languages. Send a numbered typed message in each direction and confirm that each
+   appears once and reaches _Delivered_ on its sender.
+3. Disconnect device B from all networks for 30 seconds (disable both Wi-Fi and cellular, where
+   applicable). Note the time and the connection status each device displays.
+4. While B is offline, send `A-02` and `A-03` from A, and `B-02` and `B-03` from B.
+   Record whether the UI accepts each send and what delivery state it shows.
+5. Restore B's connection and start a timer. Do not reload either tab or resend manually.
+6. Check that every accepted message appears exactly once on the other device and reaches
+   _Delivered_ on its sender within 10 seconds of reconnection.
+7. Repeat with A disconnected instead. Then repeat with a short microphone recording in each
+   direction, noting microphone permissions and whether translated speech plays during recording.
+
+Record each run with the fields below. Use synthetic phrases, and never paste room links, seat
+tokens, API keys or personal conversations into committed results.
+
+- Direction and input type:
+- Accepted message IDs:
+- Received message IDs:
+- Missing messages and duplicates:
+- Seconds from reconnection until all accepted messages reach _Delivered_:
+- Reload or manual resend required:
+- Recording/playback overlap observed:
+- Pass, fail or blocked, with observed errors:
+
+The typed-message run passes the Phase 2 delivery gate only if both disconnect directions have
+zero missing messages, zero duplicates, all receipts within 10 seconds and no reloads. Report audio
+results separately so provider or microphone failures are visible. Demo-provider runs establish
+delivery behavior only; they cannot establish translation quality or real-provider latency.
+
+Closing a tab is a separate exploratory test: durable queued sends are not implemented yet.
+Do not interpret a foreground reconnect pass as evidence that unsent messages survive tab closure.
+
 ## Translation adequacy rubric
 
 | Score | Meaning                                       |
